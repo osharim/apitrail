@@ -1,4 +1,5 @@
 import { consoleAdapter } from './adapters/console.js'
+import { DEFAULT_MASK_KEYS } from './mask.js'
 import type { ApitrailConfig, ResolvedConfig } from './types.js'
 
 export const DEFAULT_CONFIG: Omit<ResolvedConfig, 'adapter'> = {
@@ -8,6 +9,12 @@ export const DEFAULT_CONFIG: Omit<ResolvedConfig, 'adapter'> = {
   statusCodes: null,
   slowMs: 500,
   sampleRate: 1,
+  sampling: { success: 1, error: 1, slow: 1 },
+  captureHeaders: true,
+  captureBodies: true,
+  captureChildren: true,
+  maxBodySize: 10_000,
+  maskKeys: DEFAULT_MASK_KEYS,
   batch: {
     maxSize: 50,
     intervalMs: 5000,
@@ -20,10 +27,17 @@ export function defineConfig(config: ApitrailConfig): ApitrailConfig {
 }
 
 export function resolveConfig(config: ApitrailConfig = {}): ResolvedConfig {
+  const { sampling, batch, ...rest } = config
   return {
     ...DEFAULT_CONFIG,
-    ...config,
-    batch: { ...DEFAULT_CONFIG.batch, ...config.batch },
+    ...rest,
+    sampling: {
+      success: sampling?.success ?? DEFAULT_CONFIG.sampling.success,
+      error: sampling?.error ?? DEFAULT_CONFIG.sampling.error,
+      slow: sampling?.slow ?? DEFAULT_CONFIG.sampling.slow,
+    },
+    maskKeys: config.maskKeys ?? DEFAULT_CONFIG.maskKeys,
+    batch: { ...DEFAULT_CONFIG.batch, ...batch },
     adapter: config.adapter ?? consoleAdapter(),
   }
 }

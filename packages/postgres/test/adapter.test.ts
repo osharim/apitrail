@@ -1,12 +1,15 @@
-import type { LogEntry } from 'apitrail'
+import type { SpanEntry } from 'apitrail'
 import { describe, expect, it, vi } from 'vitest'
 import { postgresAdapter } from '../src/index.js'
 
-function makeEntry(overrides: Partial<LogEntry> = {}): LogEntry {
+function makeEntry(overrides: Partial<SpanEntry> = {}): SpanEntry {
   return {
     traceId: 'a'.repeat(32),
     spanId: 'b'.repeat(16),
-    timestamp: 1_700_000_000_000,
+    name: 'GET /api/x',
+    kind: 'SERVER',
+    status: 'OK',
+    startTime: 1_700_000_000_000,
     method: 'GET',
     path: '/api/x',
     durationMs: 42,
@@ -41,9 +44,9 @@ describe('postgresAdapter', () => {
     await adapter.insertBatch([makeEntry()])
 
     expect(queries).toHaveLength(1)
-    expect(queries[0]!.sql).toContain('INSERT INTO "apitrail_logs"')
-    expect(queries[0]!.sql).toContain('($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)')
-    expect(queries[0]!.params).toHaveLength(16)
+    expect(queries[0]!.sql).toContain('INSERT INTO "apitrail_spans"')
+    // 25 columns now
+    expect(queries[0]!.params).toHaveLength(25)
   })
 
   it('batches multiple entries into one statement', async () => {
@@ -56,8 +59,8 @@ describe('postgresAdapter', () => {
     await adapter.insertBatch([makeEntry(), makeEntry(), makeEntry()])
 
     expect(queries).toHaveLength(1)
-    expect(queries[0]!.sql).toMatch(/VALUES \(.+\), \(.+\), \(.+\)$/s)
-    expect(queries[0]!.params).toHaveLength(48)
+    expect(queries[0]!.sql).toMatch(/VALUES \(.+\), \(.+\), \(.+\)/s)
+    expect(queries[0]!.params).toHaveLength(75)
   })
 
   it('no-ops on empty batch', async () => {

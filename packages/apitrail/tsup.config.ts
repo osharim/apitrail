@@ -3,6 +3,8 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
+    capture: 'src/capture.ts',
+    shutdown: 'src/shutdown.ts',
     'adapters/console': 'src/adapters/console.ts',
   },
   format: ['esm', 'cjs'],
@@ -11,5 +13,5 @@ export default defineConfig({
   sourcemap: true,
   treeshake: true,
   target: 'node20',
-  external: ['next', '@opentelemetry/api', '@vercel/otel'],
+  external: ['next', '@opentelemetry/api', '@vercel/otel', '@opentelemetry/sdk-trace-base'],
 })

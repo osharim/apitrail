@@ -20,7 +20,7 @@ describe('quoteIdent', () => {
 describe('createSchemaSQL', () => {
   it('uses the default table name', () => {
     const sql = createSchemaSQL()
-    expect(sql).toContain('"apitrail_logs"')
+    expect(sql).toContain('"apitrail_spans"')
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS')
     expect(sql).toContain('CREATE INDEX IF NOT EXISTS')
   })
@@ -38,6 +38,8 @@ describe('createSchemaSQL', () => {
 
 describe('dropSchemaSQL', () => {
   it('builds a safe drop statement', () => {
-    expect(dropSchemaSQL('apitrail_logs')).toBe('DROP TABLE IF EXISTS "apitrail_logs" CASCADE;')
+    expect(dropSchemaSQL('apitrail_spans')).toBe(
+      'DROP TABLE IF EXISTS "apitrail_spans" CASCADE;',
+    )
   })
 })

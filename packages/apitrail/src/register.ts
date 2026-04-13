@@ -20,7 +20,8 @@ export async function register(config?: ApitrailConfig): Promise<void> {
 
   const resolved = resolveConfig(config)
 
-  // Edge runtime doesn't support the Node SDK — skip silently.
+  // Edge runtime: we can't patch globals safely there, and Next.js handles
+  // tracing differently. Skip quietly.
   if (process.env.NEXT_RUNTIME === 'edge') {
     if (resolved.debug) console.log('[apitrail] edge runtime detected, skipping registration')
     return
@@ -35,10 +36,23 @@ export async function register(config?: ApitrailConfig): Promise<void> {
       serviceName: resolved.serviceName,
       spanProcessors: [processor],
     })
+
+    if (resolved.captureBodies || resolved.captureHeaders) {
+      const { installCapture } = await import('./capture.js')
+      installCapture({
+        maxBodySize: resolved.maxBodySize,
+        captureBodies: resolved.captureBodies,
+        captureHeaders: resolved.captureHeaders,
+      })
+    }
+
     const { registerShutdownHandlers } = await import('./shutdown.js')
     registerShutdownHandlers(processor)
+
     if (resolved.debug) {
-      console.log(`[apitrail] registered (adapter: ${resolved.adapter.name})`)
+      console.log(
+        `[apitrail] registered (adapter: ${resolved.adapter.name}, bodies: ${resolved.captureBodies}, children: ${resolved.captureChildren})`,
+      )
     }
   } catch (err) {
     console.error(

@@ -1,71 +1,68 @@
-import type { LogEntry, StorageAdapter } from 'apitrail'
+import type { SpanEntry, StorageAdapter } from 'apitrail'
 import { Pool } from 'pg'
 import { createSchemaSQL, quoteIdent } from './schema.js'
 import type { PostgresAdapterOptions } from './types.js'
 
 const COLUMNS = [
-  'trace_id',
   'span_id',
-  'timestamp',
+  'trace_id',
+  'parent_span_id',
+  'name',
+  'kind',
+  'status',
+  'start_time',
+  'duration_ms',
   'method',
   'path',
   'route',
   'status_code',
-  'duration_ms',
+  'host',
   'user_agent',
   'client_ip',
   'referer',
-  'host',
-  'runtime',
+  'req_headers',
+  'req_body',
+  'res_headers',
+  'res_body',
   'error_message',
   'error_stack',
+  'service_name',
+  'runtime',
   'attributes',
 ] as const
 
-type EntryRow = [
-  string, // trace_id
-  string, // span_id
-  Date, // timestamp
-  string, // method
-  string, // path
-  string | null, // route
-  number | null, // status_code
-  number, // duration_ms
-  string | null, // user_agent
-  string | null, // client_ip
-  string | null, // referer
-  string | null, // host
-  string, // runtime
-  string | null, // error_message
-  string | null, // error_stack
-  string, // attributes (JSON)
-]
+type Value = string | number | boolean | Date | null
 
-function toRow(e: LogEntry): EntryRow {
+function toRow(e: SpanEntry): Value[] {
   return [
-    e.traceId,
     e.spanId,
-    new Date(e.timestamp),
-    e.method,
-    e.path,
+    e.traceId,
+    e.parentSpanId ?? null,
+    e.name,
+    e.kind,
+    e.status,
+    new Date(e.startTime),
+    e.durationMs,
+    e.method ?? null,
+    e.path ?? null,
     e.route ?? null,
     e.statusCode ?? null,
-    e.durationMs,
+    e.host ?? null,
     e.userAgent ?? null,
     e.clientIp ?? null,
     e.referer ?? null,
-    e.host ?? null,
-    e.runtime,
+    e.reqHeaders ? JSON.stringify(e.reqHeaders) : null,
+    e.reqBody ?? null,
+    e.resHeaders ? JSON.stringify(e.resHeaders) : null,
+    e.resBody ?? null,
     e.error?.message ?? null,
     e.error?.stack ?? null,
+    e.serviceName ?? null,
+    e.runtime,
     JSON.stringify(e.attributes ?? {}),
   ]
 }
 
-/**
- * Builds a parameterized bulk-insert statement like:
- *   INSERT INTO "apitrail_logs" (col1, col2, …) VALUES ($1, $2, …), ($n, $n+1, …)
- */
 function buildInsertSQL(tableName: string, batchSize: number): string {
   const t = quoteIdent(tableName)
   const cols = COLUMNS.join(', ')
@@ -75,25 +72,28 @@ function buildInsertSQL(tableName: string, batchSize: number): string {
     const placeholders = COLUMNS.map((_, j) => `$${base + j + 1}`).join(', ')
     tuples.push(`(${placeholders})`)
   }
-  return `INSERT INTO ${t} (${cols}) VALUES ${tuples.join(', ')}`
+  return `INSERT INTO ${t} (${cols}) VALUES ${tuples.join(', ')} ON CONFLICT (span_id) DO NOTHING`
 }
 
 export function postgresAdapter(options: PostgresAdapterOptions = {}): StorageAdapter {
-  const tableName = options.tableName ?? 'apitrail_logs'
+  const tableName = options.tableName ?? 'apitrail_spans'
   // Validate upfront so misconfiguration fails fast.
   quoteIdent(tableName)
 
   const ownsPool = !options.pool
-  const pool: Pool = options.pool ??
+  const pool: Pool =
+    options.pool ??
     new Pool({
       connectionString: options.connectionString,
       ...options.poolConfig,
     })
 
   const closePoolOnShutdown = options.closePoolOnShutdown ?? ownsPool
-  const onError = options.onError ?? ((err: unknown) => {
-    console.error('[apitrail/postgres]', err)
-  })
+  const onError =
+    options.onError ??
+    ((err: unknown) => {
+      console.error('[apitrail/postgres]', err)
+    })
 
   let migrated = !options.autoMigrate
   let migrationPromise: Promise<void> | null = null
@@ -117,12 +117,12 @@ export function postgresAdapter(options: PostgresAdapterOptions = {}): StorageAd
   return {
     name: 'postgres',
 
-    async insertBatch(entries: LogEntry[]): Promise<void> {
+    async insertBatch(entries: SpanEntry[]): Promise<void> {
       if (entries.length === 0) return
       try {
         await ensureMigrated()
         const sql = buildInsertSQL(tableName, entries.length)
-        const params: unknown[] = []
+        const params: Value[] = []
         for (const e of entries) {
           params.push(...toRow(e))
         }

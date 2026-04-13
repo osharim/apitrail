@@ -1,28 +1,65 @@
-export interface LogEntry {
+export type SpanKind = 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER'
+export type SpanStatus = 'UNSET' | 'OK' | 'ERROR'
+
+export interface SpanEntry {
+  // Identity
   traceId: string
   spanId: string
-  timestamp: number
-  method: string
-  path: string
+  parentSpanId?: string
+
+  // Span basics
+  name: string
+  kind: SpanKind
+  status: SpanStatus
+  startTime: number // ms since epoch
+  durationMs: number
+
+  // HTTP (present on SERVER and CLIENT HTTP spans)
+  method?: string
+  path?: string
   route?: string
   statusCode?: number
-  durationMs: number
+  host?: string
   userAgent?: string
   clientIp?: string
   referer?: string
-  host?: string
-  runtime: 'nodejs' | 'edge' | 'unknown'
+
+  // Bodies (only captured on HTTP SERVER root spans when captureBodies=true)
+  reqHeaders?: Record<string, string>
+  reqBody?: string
+  resHeaders?: Record<string, string>
+  resBody?: string
+
+  // Error
   error?: {
     message: string
     stack?: string
   }
+
+  // Context
+  serviceName?: string
+  runtime: 'nodejs' | 'edge' | 'unknown'
+
+  // All other OTEL attributes
   attributes: Record<string, string | number | boolean>
 }
 
+/** @deprecated renamed to `SpanEntry`. Kept as alias for backward compat. */
+export type LogEntry = SpanEntry
+
 export interface StorageAdapter {
   name: string
-  insertBatch: (entries: LogEntry[]) => Promise<void> | void
+  insertBatch: (entries: SpanEntry[]) => Promise<void> | void
   shutdown?: () => Promise<void> | void
+}
+
+export interface SamplingConfig {
+  /** Rate for successful requests (2xx/3xx). Default: 1 (all). */
+  success?: number
+  /** Rate for errors (4xx/5xx). Default: 1 (all). */
+  error?: number
+  /** Rate for slow requests (duration > slowMs). Default: 1 (all). */
+  slow?: number
 }
 
 export interface ResolvedConfig {
@@ -32,7 +69,23 @@ export interface ResolvedConfig {
   methods: string[] | null
   statusCodes: number[] | null
   slowMs: number
+
+  /** Legacy global sample rate. Kept for backward compat — if < 1, applied to all spans. */
   sampleRate: number
+  sampling: Required<SamplingConfig>
+
+  /** Capture request/response headers on HTTP SERVER spans. Default: true. */
+  captureHeaders: boolean
+  /** Capture request/response bodies on HTTP SERVER spans. Default: true. */
+  captureBodies: boolean
+  /** Capture child spans (fetches, DB queries, renders, etc.). Default: true. */
+  captureChildren: boolean
+  /** Maximum captured body size in chars. Default: 10_000. -1 for unlimited. */
+  maxBodySize: number
+
+  /** Keys (headers/JSON fields) to redact. */
+  maskKeys: readonly string[]
+
   batch: {
     maxSize: number
     intervalMs: number
@@ -40,6 +93,11 @@ export interface ResolvedConfig {
   debug: boolean
 }
 
-export type ApitrailConfig = Partial<Omit<ResolvedConfig, 'adapter'>> & {
+export type ApitrailConfig = Partial<
+  Omit<ResolvedConfig, 'adapter' | 'sampling' | 'maskKeys' | 'batch'>
+> & {
   adapter?: StorageAdapter
+  sampling?: SamplingConfig
+  maskKeys?: readonly string[]
+  batch?: Partial<ResolvedConfig['batch']>
 }
