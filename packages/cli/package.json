@@ -1,0 +1,40 @@
+{
+  "name": "@apitrail/cli",
+  "version": "0.1.0",
+  "description": "CLI for apitrail — init schema, inspect, drop.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apitrail/apitrail.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://apitrail.io",
+  "keywords": ["apitrail", "cli", "postgres"],
+  "type": "module",
+  "bin": {
+    "apitrail": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "files": ["dist", "README.md"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@apitrail/postgres": "workspace:*",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
