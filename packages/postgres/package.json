@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/postgres",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.0",
   "description": "Postgres storage adapter for apitrail",
   "license": "MIT",
   "author": "apitrail contributors",
@@ -11,7 +11,14 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": ["apitrail", "postgres", "postgresql", "adapter", "storage", "supabase"],
+  "keywords": [
+    "apitrail",
+    "postgres",
+    "postgresql",
+    "adapter",
+    "storage",
+    "supabase"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -29,14 +36,18 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "engines": {
     "node": ">=20"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "tsup",

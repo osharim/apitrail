@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/dashboard",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.0",
   "description": "Embeddable Next.js dashboard for apitrail",
   "license": "MIT",
   "author": "apitrail contributors",
@@ -11,7 +11,13 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": ["apitrail", "dashboard", "nextjs", "observability", "ui"],
+  "keywords": [
+    "apitrail",
+    "dashboard",
+    "nextjs",
+    "observability",
+    "ui"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -24,14 +30,20 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
-  "sideEffects": ["*.css"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "engines": {
     "node": ">=20"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "tsup && cp src/styles.css dist/styles.css",
