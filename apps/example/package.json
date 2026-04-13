@@ -10,8 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@apitrail/postgres": "workspace:*",
     "apitrail": "workspace:*",
     "next": "^15.1.3",
+    "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
