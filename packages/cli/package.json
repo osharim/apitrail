@@ -6,11 +6,11 @@
   "author": "apitrail contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apitrail/apitrail.git",
+    "url": "git+https://github.com/osharim/apitrail.git",
     "directory": "packages/cli"
   },
   "homepage": "https://apitrail.io",
-  "bugs": "https://github.com/apitrail/apitrail/issues",
+  "bugs": "https://github.com/osharim/apitrail/issues",
   "keywords": ["apitrail", "cli", "postgres"],
   "type": "module",
   "bin": {

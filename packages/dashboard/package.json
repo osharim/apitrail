@@ -6,11 +6,11 @@
   "author": "apitrail contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apitrail/apitrail.git",
+    "url": "git+https://github.com/osharim/apitrail.git",
     "directory": "packages/dashboard"
   },
   "homepage": "https://apitrail.io",
-  "bugs": "https://github.com/apitrail/apitrail/issues",
+  "bugs": "https://github.com/osharim/apitrail/issues",
   "keywords": ["apitrail", "dashboard", "nextjs", "observability", "ui"],
   "type": "module",
   "main": "./dist/index.js",

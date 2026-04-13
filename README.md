@@ -2,7 +2,7 @@
 
 > The API logger for Next.js (and beyond) — your data, your database.
 
-[![CI](https://github.com/apitrail/apitrail/actions/workflows/ci.yml/badge.svg)](https://github.com/apitrail/apitrail/actions/workflows/ci.yml)
+[![CI](https://github.com/osharim/apitrail/actions/workflows/ci.yml/badge.svg)](https://github.com/osharim/apitrail/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Drop-in request / response logging for Next.js App Router. Built on OpenTelemetry. Stores spans — bodies, headers, status, durations, and the full waterfall of child spans — **in your own database**. Zero SaaS. Zero extra infra.
