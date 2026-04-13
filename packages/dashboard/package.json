@@ -1,0 +1,63 @@
+{
+  "name": "@apitrail/dashboard",
+  "version": "0.1.0",
+  "description": "Embeddable Next.js dashboard for apitrail",
+  "license": "MIT",
+  "author": "apitrail contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apitrail/apitrail.git",
+    "directory": "packages/dashboard"
+  },
+  "homepage": "https://apitrail.io",
+  "bugs": "https://github.com/apitrail/apitrail/issues",
+  "keywords": ["apitrail", "dashboard", "nextjs", "observability", "ui"],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "sideEffects": ["*.css"],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsup && cp src/styles.css dist/styles.css",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "pnpm clean && pnpm build"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0",
+    "pg": ">=8.0.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "next": "^15.1.3",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

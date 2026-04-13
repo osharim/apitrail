@@ -2,7 +2,10 @@ export default function Page() {
   return (
     <main>
       <h1>apitrail example</h1>
-      <p>Open your terminal and try these endpoints:</p>
+      <p>
+        <a href="/apitrail">→ open the dashboard</a>
+      </p>
+      <p>Try these endpoints first:</p>
       <ul>
         <li>
           <a href="/api/hello">GET /api/hello</a>
