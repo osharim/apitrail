@@ -1,0 +1,46 @@
+name: Bug report
+description: Something is not working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal steps or a link to a repro repo
+    validations:
+      required: true
+  - type: input
+    id: apitrail-version
+    attributes:
+      label: apitrail version
+    validations:
+      required: true
+  - type: input
+    id: next-version
+    attributes:
+      label: Next.js version
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options:
+        - Node.js
+        - Edge
+        - Both
+    validations:
+      required: true
