@@ -1,12 +1,14 @@
-import pg, { type Pool } from 'pg'
+import pg from 'pg'
+
+const { Pool } = pg
 
 export interface DbOptions {
   url: string
   ssl?: boolean
 }
 
-export function openPool({ url, ssl = true }: DbOptions): Pool {
-  return new pg.Pool({
+export function openPool({ url, ssl = true }: DbOptions): pg.Pool {
+  return new Pool({
     connectionString: url,
     ssl: ssl ? { rejectUnauthorized: false } : false,
   })

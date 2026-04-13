@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["dist", ".next", "node_modules", ".turbo", "coverage"]
+    "ignore": ["dist", ".next", "node_modules", ".turbo", "coverage", "pnpm-lock.yaml"]
   },
   "formatter": {
     "enabled": true,
@@ -19,12 +19,17 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
+      },
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "error"
       },
       "style": {
         "useImportType": "error",
-        "useNodejsImportProtocol": "error"
+        "useNodejsImportProtocol": "error",
+        "useConst": "error"
       }
     }
   },

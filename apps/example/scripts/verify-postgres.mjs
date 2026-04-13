@@ -53,8 +53,7 @@ async function main() {
         `${r.trace_id.slice(0, 8)}  ${String(r.method).padEnd(5)} ${r.path.padEnd(20)} ${String(status).padStart(3)}  ${dur.padStart(6)}`,
       )
       if (r.req_body) console.log(`   req body : ${r.req_body}`)
-      if (r.req_headers?.authorization)
-        console.log(`   req auth : ${r.req_headers.authorization}`)
+      if (r.req_headers?.authorization) console.log(`   req auth : ${r.req_headers.authorization}`)
       if (r.res_body) console.log(`   res body : ${truncate(r.res_body, 120)}`)
       if (r.error_message) console.log(`   error    : ${r.error_message}`)
 
@@ -69,14 +68,16 @@ async function main() {
       if (children.length > 0) {
         console.log(`   ├─ ${children.length} child span(s):`)
         for (const c of children) {
-          console.log(`   │   ${c.kind.padEnd(8)} ${c.name} (${Number(c.duration_ms).toFixed(1)}ms)`)
+          console.log(
+            `   │   ${c.kind.padEnd(8)} ${c.name} (${Number(c.duration_ms).toFixed(1)}ms)`,
+          )
         }
       }
       console.log()
     }
 
     const { rows: counts } = await pool.query(
-      `SELECT kind, count(*)::int FROM apitrail_spans GROUP BY kind ORDER BY count DESC`,
+      'SELECT kind, count(*)::int FROM apitrail_spans GROUP BY kind ORDER BY count DESC',
     )
     console.log('=== span count by kind ===')
     for (const c of counts) console.log(`  ${c.kind.padEnd(10)} ${c.count}`)

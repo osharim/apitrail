@@ -1,13 +1,13 @@
-import type { Pool, PoolConfig } from 'pg'
+import type pg from 'pg'
 
 export interface PostgresAdapterOptions {
   /** Pre-built `pg.Pool`. Takes precedence over `connectionString`. */
-  pool?: Pool
+  pool?: pg.Pool
   /** Postgres connection string. Used only if `pool` is not provided. */
   connectionString?: string
   /** Additional `pg.PoolConfig` options merged on top of `connectionString`. */
-  poolConfig?: Omit<PoolConfig, 'connectionString'>
-  /** Table name. Defaults to `apitrail_logs`. Must match `/^[a-zA-Z_][a-zA-Z0-9_]*$/`. */
+  poolConfig?: Omit<pg.PoolConfig, 'connectionString'>
+  /** Table name. Defaults to `apitrail_spans`. Must match `/^[a-zA-Z_][a-zA-Z0-9_]*$/`. */
   tableName?: string
   /**
    * If true, run `CREATE TABLE IF NOT EXISTS …` on startup.

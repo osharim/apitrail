@@ -44,12 +44,13 @@ describe('shouldSample', () => {
     expect(shouldSample(makeEntry({ statusCode: 200, durationMs: 500 }), cfg)).toBe(true)
   })
 
-  it('applies global sampleRate to non-SERVER spans', () => {
-    const cfg = resolveConfig({ sampleRate: 0 })
+  it('uses success rate for non-SERVER spans', () => {
+    const cfg = resolveConfig({ sampling: { success: 0 } })
     expect(shouldSample(makeEntry({ kind: 'INTERNAL' }), cfg)).toBe(false)
+    expect(shouldSample(makeEntry({ kind: 'CLIENT' }), cfg)).toBe(false)
   })
 
-  it('keeps non-SERVER spans when sampleRate is 1 regardless of status', () => {
+  it('keeps non-SERVER spans under defaults regardless of status', () => {
     const cfg = resolveConfig()
     expect(shouldSample(makeEntry({ kind: 'CLIENT', statusCode: 500 }), cfg)).toBe(true)
   })

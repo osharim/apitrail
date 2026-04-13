@@ -1,7 +1,9 @@
 import type { SpanEntry, StorageAdapter } from 'apitrail'
-import { Pool } from 'pg'
+import pg from 'pg'
 import { createSchemaSQL, quoteIdent } from './schema.js'
 import type { PostgresAdapterOptions } from './types.js'
+
+const { Pool } = pg
 
 const COLUMNS = [
   'span_id',
@@ -81,7 +83,7 @@ export function postgresAdapter(options: PostgresAdapterOptions = {}): StorageAd
   quoteIdent(tableName)
 
   const ownsPool = !options.pool
-  const pool: Pool =
+  const pool: pg.Pool =
     options.pool ??
     new Pool({
       connectionString: options.connectionString,

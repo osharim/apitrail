@@ -1,12 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BatchQueue } from '../src/queue.js'
-import type { LogEntry, StorageAdapter } from '../src/types.js'
+import { createBatchQueue } from '../src/queue.js'
+import type { SpanEntry, StorageAdapter } from '../src/types.js'
 
-function makeEntry(path = '/api/x'): LogEntry {
+function makeEntry(path = '/api/x'): SpanEntry {
   return {
     traceId: 'a'.repeat(32),
     spanId: 'b'.repeat(16),
-    timestamp: Date.now(),
+    name: `GET ${path}`,
+    kind: 'SERVER',
+    status: 'OK',
+    startTime: Date.now(),
     method: 'GET',
     path,
     durationMs: 10,
@@ -15,7 +18,7 @@ function makeEntry(path = '/api/x'): LogEntry {
   }
 }
 
-describe('BatchQueue', () => {
+describe('createBatchQueue', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -24,14 +27,14 @@ describe('BatchQueue', () => {
   })
 
   it('flushes when maxSize is reached', async () => {
-    const inserted: LogEntry[][] = []
+    const inserted: SpanEntry[][] = []
     const adapter: StorageAdapter = {
       name: 'test',
       insertBatch: (e) => {
         inserted.push(e)
       },
     }
-    const q = new BatchQueue(adapter, { maxSize: 3, intervalMs: 60_000 })
+    const q = createBatchQueue({ adapter, batch: { maxSize: 3, intervalMs: 60_000 } })
     q.push(makeEntry())
     q.push(makeEntry())
     expect(inserted).toHaveLength(0)
@@ -43,14 +46,14 @@ describe('BatchQueue', () => {
   })
 
   it('flushes on interval', async () => {
-    const inserted: LogEntry[][] = []
+    const inserted: SpanEntry[][] = []
     const adapter: StorageAdapter = {
       name: 'test',
       insertBatch: (e) => {
         inserted.push(e)
       },
     }
-    const q = new BatchQueue(adapter, { maxSize: 100, intervalMs: 1000 })
+    const q = createBatchQueue({ adapter, batch: { maxSize: 100, intervalMs: 1000 } })
     q.push(makeEntry())
     q.push(makeEntry())
     await vi.advanceTimersByTimeAsync(1100)
@@ -60,14 +63,14 @@ describe('BatchQueue', () => {
   })
 
   it('flushes remaining entries on shutdown', async () => {
-    const inserted: LogEntry[][] = []
+    const inserted: SpanEntry[][] = []
     const adapter: StorageAdapter = {
       name: 'test',
       insertBatch: (e) => {
         inserted.push(e)
       },
     }
-    const q = new BatchQueue(adapter, { maxSize: 100, intervalMs: 60_000 })
+    const q = createBatchQueue({ adapter, batch: { maxSize: 100, intervalMs: 60_000 } })
     q.push(makeEntry())
     await q.shutdown()
     expect(inserted).toHaveLength(1)
@@ -75,7 +78,7 @@ describe('BatchQueue', () => {
 
   it('ignores pushes after shutdown', async () => {
     const adapter: StorageAdapter = { name: 'test', insertBatch: () => {} }
-    const q = new BatchQueue(adapter, { maxSize: 100, intervalMs: 60_000 })
+    const q = createBatchQueue({ adapter, batch: { maxSize: 100, intervalMs: 60_000 } })
     await q.shutdown()
     q.push(makeEntry())
   })

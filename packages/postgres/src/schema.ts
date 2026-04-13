@@ -79,8 +79,7 @@ export function dropSchemaSQL(tableName = 'apitrail_spans'): string {
 export function quoteIdent(name: string): string {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
     throw new Error(
-      `Invalid Postgres identifier: ${JSON.stringify(name)}. ` +
-        'Must match /^[a-zA-Z_][a-zA-Z0-9_]*$/',
+      `Invalid Postgres identifier: ${JSON.stringify(name)}. Must match /^[a-zA-Z_][a-zA-Z0-9_]*$/`,
     )
   }
   return `"${name}"`

@@ -1,6 +1,6 @@
 import { resolveConfig } from './config.js'
-import { ApitrailSpanProcessor } from './processor.js'
-import { BatchQueue } from './queue.js'
+import { createSpanProcessor } from './processor.js'
+import { createBatchQueue } from './queue.js'
 import type { ApitrailConfig } from './types.js'
 
 let registered = false
@@ -27,8 +27,12 @@ export async function register(config?: ApitrailConfig): Promise<void> {
     return
   }
 
-  const queue = new BatchQueue(resolved.adapter, resolved.batch)
-  const processor = new ApitrailSpanProcessor(queue, resolved)
+  const queue = createBatchQueue({
+    adapter: resolved.adapter,
+    batch: resolved.batch,
+    debug: resolved.debug,
+  })
+  const processor = createSpanProcessor(queue, resolved)
 
   try {
     const { registerOTel } = await import('@vercel/otel')
@@ -55,9 +59,6 @@ export async function register(config?: ApitrailConfig): Promise<void> {
       )
     }
   } catch (err) {
-    console.error(
-      '[apitrail] failed to register. Install @vercel/otel or ensure Next.js 15+.',
-      err,
-    )
+    console.error('[apitrail] failed to register. Install @vercel/otel or ensure Next.js 15+.', err)
   }
 }

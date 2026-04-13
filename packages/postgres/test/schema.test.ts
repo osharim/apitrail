@@ -38,8 +38,6 @@ describe('createSchemaSQL', () => {
 
 describe('dropSchemaSQL', () => {
   it('builds a safe drop statement', () => {
-    expect(dropSchemaSQL('apitrail_spans')).toBe(
-      'DROP TABLE IF EXISTS "apitrail_spans" CASCADE;',
-    )
+    expect(dropSchemaSQL('apitrail_spans')).toBe('DROP TABLE IF EXISTS "apitrail_spans" CASCADE;')
   })
 })

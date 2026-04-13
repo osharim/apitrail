@@ -71,14 +71,7 @@ export async function status(argv: string[]): Promise<void> {
   const t = `"${tableName}"`
 
   try {
-    const [
-      total,
-      byKind,
-      last24,
-      errors,
-      slow,
-      recent,
-    ] = await Promise.all([
+    const [total, byKind, last24, errors, slow, recent] = await Promise.all([
       pool.query<{ count: string }>(`SELECT count(*)::text AS count FROM ${t}`),
       pool.query<{ kind: string; count: string }>(
         `SELECT kind, count(*)::text AS count FROM ${t} GROUP BY kind ORDER BY count DESC`,
@@ -110,7 +103,9 @@ export async function status(argv: string[]): Promise<void> {
     console.log(`${dim('last 24h    :')} ${last24.rows[0]?.count ?? '0'}`)
     console.log(`${dim('errors 24h  :')} ${errors.rows[0]?.count ?? '0'}`)
     console.log(`${dim('slow 24h    :')} ${slow.rows[0]?.count ?? '0'} ${gray('(>500ms)')}`)
-    console.log(`${dim('spans/kind  :')} ${byKind.rows.map((r) => `${r.kind}=${r.count}`).join(', ') || '—'}`)
+    console.log(
+      `${dim('spans/kind  :')} ${byKind.rows.map((r) => `${r.kind}=${r.count}`).join(', ') || '—'}`,
+    )
     console.log()
 
     if (recent.rows.length === 0) {
@@ -127,7 +122,9 @@ export async function status(argv: string[]): Promise<void> {
       const path = (r.path ?? '').padEnd(30)
       const trace = gray(r.trace_id.slice(0, 8))
       const err = r.error_message ? red(` ⚠ ${r.error_message}`) : ''
-      console.log(`${gray(when)}  ${trace}  ${meth} ${path} ${fmtStatus(r.status_code)} ${dur}${err}`)
+      console.log(
+        `${gray(when)}  ${trace}  ${meth} ${path} ${fmtStatus(r.status_code)} ${dur}${err}`,
+      )
     }
     console.log()
   } finally {

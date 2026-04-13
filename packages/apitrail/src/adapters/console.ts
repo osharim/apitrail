@@ -1,4 +1,4 @@
-import type { LogEntry, StorageAdapter } from '../types.js'
+import type { SpanEntry, StorageAdapter } from '../types.js'
 
 export interface ConsoleAdapterOptions {
   pretty?: boolean
@@ -36,7 +36,7 @@ function formatDuration(ms: number, color: boolean): string {
 
 function isTTY(): boolean {
   const proc = globalThis.process as NodeJS.Process | undefined
-  return Boolean(proc?.['stdout']?.['isTTY'])
+  return Boolean(proc?.stdout?.isTTY)
 }
 
 export function consoleAdapter(options: ConsoleAdapterOptions = {}): StorageAdapter {
@@ -44,7 +44,7 @@ export function consoleAdapter(options: ConsoleAdapterOptions = {}): StorageAdap
 
   return {
     name: 'console',
-    insertBatch(entries: LogEntry[]) {
+    insertBatch(entries: SpanEntry[]) {
       for (const entry of entries) {
         if (!pretty) {
           console.log(JSON.stringify(entry))
@@ -57,17 +57,15 @@ export function consoleAdapter(options: ConsoleAdapterOptions = {}): StorageAdap
         const trace = color
           ? `${COLORS.dim}[${entry.traceId.slice(0, 8)}]${COLORS.reset}`
           : `[${entry.traceId.slice(0, 8)}]`
-        const prefix = color
-          ? `${COLORS.magenta}apitrail${COLORS.reset}`
-          : 'apitrail'
-        const statusStr = color
-          ? `${statusColor}${status}${COLORS.reset}`
-          : String(status)
+        const prefix = color ? `${COLORS.magenta}apitrail${COLORS.reset}` : 'apitrail'
+        const statusStr = color ? `${statusColor}${status}${COLORS.reset}` : String(status)
 
         console.log(`${prefix} ${trace} ${method} ${entry.path} ${statusStr} ${duration}`)
 
         if (entry.error) {
-          const err = color ? `${COLORS.red}${entry.error.message}${COLORS.reset}` : entry.error.message
+          const err = color
+            ? `${COLORS.red}${entry.error.message}${COLORS.reset}`
+            : entry.error.message
           console.log(`         ↳ ${err}`)
         }
       }

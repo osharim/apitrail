@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "description": "Postgres storage adapter for apitrail",
   "license": "MIT",
+  "author": "apitrail contributors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apitrail/apitrail.git",
     "directory": "packages/postgres"
   },
   "homepage": "https://apitrail.io",
+  "bugs": "https://github.com/apitrail/apitrail/issues",
   "keywords": ["apitrail", "postgres", "postgresql", "adapter", "storage", "supabase"],
   "type": "module",
   "main": "./dist/index.cjs",
@@ -27,17 +29,22 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "sideEffects": false,
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo"
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "pnpm clean && pnpm build"
   },
   "peerDependencies": {
     "apitrail": "workspace:*",

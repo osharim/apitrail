@@ -165,10 +165,7 @@ function patchRequest(opts: InstallOptions): void {
 function patchResponse(opts: InstallOptions): void {
   if (typeof Response === 'undefined') return
 
-  const OrigResponse = Response as unknown as new (
-    body?: unknown,
-    init?: ResponseInit,
-  ) => Response
+  const OrigResponse = Response as unknown as new (body?: unknown, init?: ResponseInit) => Response
   const origStaticJson = (
     Response as unknown as { json: (data: unknown, init?: ResponseInit) => Response }
   ).json

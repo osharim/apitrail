@@ -3,10 +3,11 @@ import { init } from './commands/init.js'
 import { status } from './commands/status.js'
 import { bold, cyan, dim, red } from './utils/colors.js'
 
-const VERSION = '0.1.0'
+// Replaced at build time by tsup `define`.
+declare const __APITRAIL_VERSION__: string
 
 const HELP = `
-${bold('apitrail')} ${dim(`v${VERSION}`)} — the API logger for Next.js.
+${bold('apitrail')} ${dim(`v${__APITRAIL_VERSION__}`)} — the API logger for Next.js.
 
 ${bold('Commands:')}
   ${cyan('init')}      Create the apitrail table + indexes in your database
@@ -43,7 +44,7 @@ async function main(): Promise<void> {
   }
 
   if (cmd === '-v' || cmd === '--version' || cmd === 'version') {
-    console.log(VERSION)
+    console.log(__APITRAIL_VERSION__)
     return
   }
 

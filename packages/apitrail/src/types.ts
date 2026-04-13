@@ -44,9 +44,6 @@ export interface SpanEntry {
   attributes: Record<string, string | number | boolean>
 }
 
-/** @deprecated renamed to `SpanEntry`. Kept as alias for backward compat. */
-export type LogEntry = SpanEntry
-
 export interface StorageAdapter {
   name: string
   insertBatch: (entries: SpanEntry[]) => Promise<void> | void
@@ -54,24 +51,21 @@ export interface StorageAdapter {
 }
 
 export interface SamplingConfig {
-  /** Rate for successful requests (2xx/3xx). Default: 1 (all). */
+  /** Rate (0-1) for successful requests (2xx/3xx). Default: 1 (all). */
   success?: number
-  /** Rate for errors (4xx/5xx). Default: 1 (all). */
+  /** Rate (0-1) for errors (4xx/5xx). Default: 1 (all). */
   error?: number
-  /** Rate for slow requests (duration > slowMs). Default: 1 (all). */
+  /** Rate (0-1) for slow requests (duration > slowMs). Default: 1 (all). */
   slow?: number
 }
 
 export interface ResolvedConfig {
   serviceName: string
   adapter: StorageAdapter
-  skipPaths: (string | RegExp)[]
-  methods: string[] | null
-  statusCodes: number[] | null
+  skipPaths: readonly (string | RegExp)[]
+  methods: readonly string[] | null
+  statusCodes: readonly number[] | null
   slowMs: number
-
-  /** Legacy global sample rate. Kept for backward compat — if < 1, applied to all spans. */
-  sampleRate: number
   sampling: Required<SamplingConfig>
 
   /** Capture request/response headers on HTTP SERVER spans. Default: true. */

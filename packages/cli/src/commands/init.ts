@@ -78,19 +78,20 @@ export async function init(argv: string[]): Promise<void> {
     console.log()
     console.log(dim('Next:'))
     console.log(dim('  Add this to your instrumentation.ts:'))
-    console.log(dim(`
+    console.log(
+      dim(`
     import { defineConfig, register as apitrailRegister } from 'apitrail'
     import { postgresAdapter } from '@apitrail/postgres'
 
     const config = defineConfig({
       adapter: postgresAdapter({
         connectionString: process.env.DATABASE_URL,
-        poolConfig: { ssl: { rejectUnauthorized: false } },
       }),
     })
 
     export const register = () => apitrailRegister(config)
-`))
+`),
+    )
   } finally {
     await pool.end()
   }

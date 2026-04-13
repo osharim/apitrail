@@ -11,7 +11,6 @@ export {
 } from './mask.js'
 export type {
   ApitrailConfig,
-  LogEntry,
   ResolvedConfig,
   SamplingConfig,
   SpanEntry,

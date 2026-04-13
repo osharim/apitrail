@@ -42,7 +42,8 @@ describe('maskJsonString', () => {
   it('parses and re-stringifies masked JSON', () => {
     const input = JSON.stringify({ password: 'hunter2', user: 'john' })
     const out = maskJsonString(input, ['password'])
-    expect(JSON.parse(out!)).toEqual({ password: MASKED_VALUE, user: 'john' })
+    expect(out).toBeDefined()
+    expect(JSON.parse(out as string)).toEqual({ password: MASKED_VALUE, user: 'john' })
   })
 
   it('returns non-JSON input unchanged', () => {

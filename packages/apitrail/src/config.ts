@@ -8,7 +8,6 @@ export const DEFAULT_CONFIG: Omit<ResolvedConfig, 'adapter'> = {
   methods: null,
   statusCodes: null,
   slowMs: 500,
-  sampleRate: 1,
   sampling: { success: 1, error: 1, slow: 1 },
   captureHeaders: true,
   captureBodies: true,

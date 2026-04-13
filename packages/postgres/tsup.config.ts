@@ -9,6 +9,8 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
+  splitting: false,
+  minify: false,
   treeshake: true,
   target: 'node20',
   external: ['pg', 'apitrail'],

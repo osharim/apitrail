@@ -44,9 +44,9 @@ describe('postgresAdapter', () => {
     await adapter.insertBatch([makeEntry()])
 
     expect(queries).toHaveLength(1)
-    expect(queries[0]!.sql).toContain('INSERT INTO "apitrail_spans"')
+    expect(queries[0]?.sql).toContain('INSERT INTO "apitrail_spans"')
     // 25 columns now
-    expect(queries[0]!.params).toHaveLength(25)
+    expect(queries[0]?.params).toHaveLength(25)
   })
 
   it('batches multiple entries into one statement', async () => {
@@ -59,8 +59,8 @@ describe('postgresAdapter', () => {
     await adapter.insertBatch([makeEntry(), makeEntry(), makeEntry()])
 
     expect(queries).toHaveLength(1)
-    expect(queries[0]!.sql).toMatch(/VALUES \(.+\), \(.+\), \(.+\)/s)
-    expect(queries[0]!.params).toHaveLength(75)
+    expect(queries[0]?.sql).toMatch(/VALUES \(.+\), \(.+\), \(.+\)/s)
+    expect(queries[0]?.params).toHaveLength(75)
   })
 
   it('no-ops on empty batch', async () => {

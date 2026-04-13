@@ -1,28 +1,24 @@
-import type { ApitrailSpanProcessor } from './processor.js'
+import type { SpanProcessor } from '@opentelemetry/sdk-trace-base'
 
 /**
- * Registers SIGTERM/SIGINT/beforeExit hooks to flush the queue on shutdown.
- *
- * Uses bracket-notation access on `process` to prevent Turbopack/Webpack
- * from flagging this file as using Node.js-only APIs when it is analyzed
- * for the Edge runtime bundle (this module is only imported from the
- * Node runtime path in `register.ts`, but bundlers may still trace it).
+ * Register SIGTERM / SIGINT / beforeExit hooks that flush the queue on
+ * shutdown. This module is only imported from the Node runtime path in
+ * `register.ts`; callers must not import it from Edge code.
  */
-export function registerShutdownHandlers(processor: ApitrailSpanProcessor): void {
-  const proc = globalThis.process as NodeJS.Process | undefined
-  const once = proc?.['once']?.bind(proc)
-  if (!once) return
+export function registerShutdownHandlers(processor: SpanProcessor): void {
+  if (typeof process === 'undefined' || typeof process.once !== 'function') return
 
   const shutdown = async (): Promise<void> => {
     await processor.shutdown()
   }
-  once('SIGTERM', () => {
+
+  process.once('SIGTERM', () => {
     void shutdown()
   })
-  once('SIGINT', () => {
+  process.once('SIGINT', () => {
     void shutdown()
   })
-  once('beforeExit', () => {
+  process.once('beforeExit', () => {
     void shutdown()
   })
 }
