@@ -14,6 +14,7 @@ export const DEFAULT_CONFIG: Omit<ResolvedConfig, 'adapter'> = {
   captureChildren: true,
   maxBodySize: 10_000,
   maskKeys: DEFAULT_MASK_KEYS,
+  otelInstrumentations: [],
   batch: {
     maxSize: 50,
     intervalMs: 5000,

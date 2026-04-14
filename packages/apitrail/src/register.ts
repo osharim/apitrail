@@ -36,9 +36,12 @@ export async function register(config?: ApitrailConfig): Promise<void> {
 
   try {
     const { registerOTel } = await import('@vercel/otel')
+    // biome-ignore lint/suspicious/noExplicitAny: @vercel/otel's Instrumentation type is too narrow to re-express here
+    const instrumentations = resolved.otelInstrumentations as any
     registerOTel({
       serviceName: resolved.serviceName,
       spanProcessors: [processor],
+      ...(instrumentations.length > 0 ? { instrumentations } : {}),
     })
 
     if (resolved.captureBodies || resolved.captureHeaders) {
@@ -54,8 +57,11 @@ export async function register(config?: ApitrailConfig): Promise<void> {
     registerShutdownHandlers(processor)
 
     if (resolved.debug) {
+      const extra = resolved.otelInstrumentations.length
+        ? `, otel: ${resolved.otelInstrumentations.length} instrumentation(s)`
+        : ''
       console.log(
-        `[apitrail] registered (adapter: ${resolved.adapter.name}, bodies: ${resolved.captureBodies}, children: ${resolved.captureChildren})`,
+        `[apitrail] registered (adapter: ${resolved.adapter.name}, bodies: ${resolved.captureBodies}, children: ${resolved.captureChildren}${extra})`,
       )
     }
   } catch (err) {

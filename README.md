@@ -204,8 +204,9 @@ pnpm dlx @apitrail/cli status --limit 20
 - 🌊 **Full child-span waterfall** — same tree you'd see in Chrome DevTools, rendered right in studio.
 - 🎚️ **Per-category sampling** — keep 100% of errors and slow requests, 10% of successes. Tunable.
 - 🚫 **Studio refuses to expose itself** — binding to non-loopback requires `--auth-basic`. Constant-time comparison.
+- 🗄️ **Database query timings** — add `@opentelemetry/instrumentation-pg` and every SQL query appears in the waterfall with its duration. Same for `fetch`, Redis, MongoDB, AWS-SDK via the OTEL instrumentation ecosystem. → [guide](./INTEGRATING.md#capture-database-queries-and-other-outgoing-calls)
 - 🧊 **Zero runtime deps in the core** beyond OTEL primitives. ~6 KB gzipped.
-- 🧪 **89 tests** across the monorepo. Biome-strict lint. Published with npm provenance.
+- 🧪 **99 tests** across the monorepo. Biome-strict lint. Published with npm provenance.
 
 ---
 

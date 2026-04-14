@@ -260,6 +260,114 @@ defineConfig({
 })
 ```
 
+## Capture database queries (and other outgoing calls)
+
+Every span apitrail sees ends up in `apitrail_spans` as a child of the root request span. Database query timings aren't captured by default — but they are one `instrumentation` away.
+
+### Postgres (via `pg`, Drizzle, or any `pg`-based client)
+
+```bash
+pnpm add @opentelemetry/instrumentation-pg
+```
+
+```ts
+// instrumentation.ts
+export async function register() {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return
+
+  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { postgresAdapter } = await import('@apitrail/postgres')
+  const { PgInstrumentation } = await import('@opentelemetry/instrumentation-pg')
+
+  await apitrailRegister(
+    defineConfig({
+      adapter: postgresAdapter({ connectionString: process.env.DATABASE_URL }),
+      otelInstrumentations: [new PgInstrumentation()],
+    }),
+  )
+}
+```
+
+Now your waterfall includes every query:
+
+```
+GET /api/quotes 200 68ms
+├─ INTERNAL  executing api route /api/quotes       45ms
+│  ├─ CLIENT pg.query SELECT FROM quotes …         18ms
+│  ├─ CLIENT pg.query SELECT FROM users …           5ms
+│  └─ CLIENT pg.query SELECT FROM products …      15ms
+└─ INTERNAL  start response                         <1ms
+```
+
+### Outgoing fetches
+
+```bash
+pnpm add @opentelemetry/instrumentation-fetch
+```
+
+Add `new FetchInstrumentation()` to `otelInstrumentations`. You'll see every `fetch('https://api.stripe.com/...')` in the waterfall with its duration, URL, method, and status.
+
+### Other databases & clients
+
+| Client | Package |
+|---|---|
+| MySQL | `@opentelemetry/instrumentation-mysql2` |
+| MongoDB | `@opentelemetry/instrumentation-mongodb` |
+| Redis | `@opentelemetry/instrumentation-redis-4` |
+| ioredis | `@opentelemetry/instrumentation-ioredis` |
+| AWS SDK | `@opentelemetry/instrumentation-aws-sdk` |
+
+Same pattern — install, `new …Instrumentation()`, add to `otelInstrumentations`.
+
+### Everything at once
+
+```bash
+pnpm add @opentelemetry/auto-instrumentations-node
+```
+
+```ts
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+
+await apitrailRegister(defineConfig({
+  adapter: postgresAdapter({ /* ... */ }),
+  otelInstrumentations: getNodeAutoInstrumentations({
+    // Next.js already handles HTTP tracing — disable the HTTP one to
+    // avoid duplicate SERVER spans.
+    '@opentelemetry/instrumentation-http': { enabled: false },
+    '@opentelemetry/instrumentation-fs': { enabled: false },
+  }),
+}))
+```
+
+### What gets stored per query
+
+Each query span is inserted into `apitrail_spans` as its own row with:
+
+| Column | Value |
+|---|---|
+| `kind` | `CLIENT` |
+| `name` | e.g. `pg.query:SELECT quotes` |
+| `parent_span_id` | the span that issued the query (usually the route handler) |
+| `duration_ms` | full query time including round-trip |
+| `attributes` | `{db.system: "postgresql", db.statement: "SELECT …", db.name: "postgres"}` |
+| `error_message` | populated if the query threw |
+
+So you can query things like "which SQL is slowest this week":
+
+```sql
+SELECT
+  attributes->>'db.statement' AS sql,
+  count(*),
+  avg(duration_ms)::int AS avg_ms,
+  max(duration_ms) AS max_ms
+FROM apitrail_spans
+WHERE kind = 'CLIENT' AND attributes->>'db.system' = 'postgresql'
+  AND created_at > now() - interval '7 days'
+GROUP BY sql
+ORDER BY avg_ms DESC
+LIMIT 20;
+```
+
 ## Environment variables
 
 | Variable | Purpose |

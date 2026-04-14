@@ -80,6 +80,21 @@ export interface ResolvedConfig {
   /** Keys (headers/JSON fields) to redact. */
   maskKeys: readonly string[]
 
+  /**
+   * Extra OpenTelemetry instrumentations to register alongside apitrail.
+   * Useful for capturing DB queries, outgoing fetches, Redis, etc. Each
+   * item is forwarded verbatim to `@vercel/otel`'s `instrumentations`
+   * option, which expects `@opentelemetry/instrumentation-*` instances.
+   *
+   * @example
+   * import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
+   *
+   * defineConfig({
+   *   otelInstrumentations: [new PgInstrumentation()],
+   * })
+   */
+  otelInstrumentations: readonly unknown[]
+
   batch: {
     maxSize: number
     intervalMs: number
