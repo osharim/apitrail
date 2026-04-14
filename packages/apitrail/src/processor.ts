@@ -146,8 +146,7 @@ function attachCaptured(entry: SpanEntry, config: ResolvedConfig): void {
     if (Object.keys(merged).length) {
       entry.reqHeaders = maskHeaders(merged, config.maskKeys)
     }
-    if (captured?.resHeaders)
-      entry.resHeaders = maskHeaders(captured.resHeaders, config.maskKeys)
+    if (captured?.resHeaders) entry.resHeaders = maskHeaders(captured.resHeaders, config.maskKeys)
   }
   if (config.captureBodies && captured) {
     // Stringify deferred body refs here, OFF the request hot path.

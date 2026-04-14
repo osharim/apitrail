@@ -1,5 +1,5 @@
-import { postgresAdapter } from '@apitrail/postgres'
 import { register as apitrailRegister, defineConfig } from '@apitrail/core'
+import { postgresAdapter } from '@apitrail/postgres'
 
 const databaseUrl = process.env.APITRAIL_DATABASE_URL ?? process.env.DATABASE_URL
 

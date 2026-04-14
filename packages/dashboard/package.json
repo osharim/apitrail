@@ -35,15 +35,8 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "sideEffects": [
-    "*.css"
-  ],
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "sideEffects": ["*.css"],
   "engines": {
     "node": ">=20"
   },
