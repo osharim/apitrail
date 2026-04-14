@@ -9,3 +9,5 @@ coverage
 .env.local
 .env*.local
 *.tsbuildinfo
+# allow docs images
+!docs/images/*
