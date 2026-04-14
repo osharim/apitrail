@@ -12,6 +12,7 @@ import type { SpanProcessor } from '@opentelemetry/sdk-trace-base'
  */
 export function registerShutdownHandlers(processor: SpanProcessor): void {
   const proc = globalThis.process as NodeJS.Process | undefined
+  // biome-ignore lint/complexity/useLiteralKeys: bracket notation hides process.once from Turbopack's static Edge-runtime analyser
   const once = proc?.['once']?.bind(proc)
   if (!once) return
 
