@@ -1,0 +1,40 @@
+# apitrail
+
+> Self-hosted request logging for Next.js. OpenTelemetry-based capture of every HTTP request — method, path, status, duration, bodies, headers, and the full waterfall of child spans (DB queries, fetches, renders) — persisted to the user's own Postgres.
+
+apitrail ships as five npm packages in a single monorepo. It captures Next.js App Router requests via a `SpanProcessor` registered through `@vercel/otel` and uses global `Request` + `Response` patches to capture bodies. Bodies, headers, and URL query parameters are redacted by a built-in `maskKeys` list. The Postgres adapter lazy-loads `pg` so `instrumentation.ts` is edge-safe by construction. Auto-instrument detects installed `@opentelemetry/instrumentation-*` packages at startup — install `@opentelemetry/instrumentation-pg` and Drizzle/pg query timings appear in the waterfall with no code change.
+
+The fastest setup path is `pnpm dlx @apitrail/cli install` — a wizard that detects the user's stack, installs the right packages (including auto-suggested OTEL instrumentations based on their `package.json`), writes an edge-safe `instrumentation.ts`, and migrates the database.
+
+## Docs
+
+- [README](https://github.com/osharim/apitrail/blob/main/README.md): project overview with hero screenshot, comparison vs Sentry/Datadog/OTEL-stack, features.
+- [INTEGRATING.md](https://github.com/osharim/apitrail/blob/main/INTEGRATING.md): canonical `ApitrailConfig` reference with every valid key, edge-safe patterns, auto-instrument details, Supabase recipe, troubleshooting. **Start here when integrating into a user project.**
+- [docs/STUDIO_SETUP.md](https://github.com/osharim/apitrail/blob/main/docs/STUDIO_SETUP.md): step-by-step walkthrough for running `@apitrail/studio` (local, LAN, Docker, systemd, reverse proxy).
+- [AGENTS.md](https://github.com/osharim/apitrail/blob/main/AGENTS.md): for agents working on the apitrail repo itself — commands, conventions, danger zones.
+- [SECURITY.md](https://github.com/osharim/apitrail/blob/main/SECURITY.md): threat model, built-in controls, deployment patterns.
+- [RELEASE.md](https://github.com/osharim/apitrail/blob/main/RELEASE.md): how new versions are cut on npm.
+
+## Packages
+
+- [@apitrail/core](https://github.com/osharim/apitrail/blob/main/packages/apitrail/README.md): core. `register()`, `defineConfig`, auto-instrument, masking utilities, `consoleAdapter`. Zero runtime deps beyond OTEL primitives.
+- [@apitrail/postgres](https://github.com/osharim/apitrail/blob/main/packages/postgres/README.md): Postgres storage adapter. Emits one row per span into `apitrail_spans` with six indexes. Edge-safe (lazy-loads `pg`).
+- [@apitrail/cli](https://github.com/osharim/apitrail/blob/main/packages/cli/README.md): `apitrail install` (one-command setup wizard), `init` (schema only), `status` (inspect), `drop` (destructive).
+- [@apitrail/studio](https://github.com/osharim/apitrail/blob/main/packages/studio/README.md): standalone Prisma-Studio-style dashboard. `pnpm dlx @apitrail/studio` → localhost:4545. Hono server + Vite+React SPA. Refuses to expose itself on non-loopback without `--auth-basic`.
+- [@apitrail/dashboard](https://github.com/osharim/apitrail/blob/main/packages/dashboard/README.md): embeddable Next.js Server Components UI — mount at `app/apitrail/[[...path]]/page.tsx`.
+
+## Source-of-truth files
+
+- [packages/apitrail/src/types.ts](https://github.com/osharim/apitrail/blob/main/packages/apitrail/src/types.ts): `ApitrailConfig`, `ResolvedConfig`, `SpanEntry`, `StorageAdapter`. The canonical public config shape — if you're an agent tempted to invent a config key, check this file first.
+- [packages/apitrail/src/auto-instrument.ts](https://github.com/osharim/apitrail/blob/main/packages/apitrail/src/auto-instrument.ts): the exact list of OTEL instrumentation packages that auto-detect.
+- [packages/postgres/src/schema.ts](https://github.com/osharim/apitrail/blob/main/packages/postgres/src/schema.ts): SQL schema for `apitrail_spans`.
+
+## Contributing
+
+- [CONTRIBUTING.md](https://github.com/osharim/apitrail/blob/main/CONTRIBUTING.md): dev loop, lint/test/build commands, conventions, adapter authoring.
+- [CODE_OF_CONDUCT.md](https://github.com/osharim/apitrail/blob/main/CODE_OF_CONDUCT.md)
+
+## Optional
+
+- [apps/example/](https://github.com/osharim/apitrail/tree/main/apps/example): reference Next.js 15 app used for end-to-end verification against a real Supabase.
+- [docs/images/hero.png](https://github.com/osharim/apitrail/blob/main/docs/images/hero.png): the studio UI screenshot used in README.

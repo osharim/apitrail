@@ -1,0 +1,57 @@
+{
+  "name": "@apitrail/cli",
+  "version": "0.1.0-alpha.4",
+  "description": "One command to set up apitrail in any Next.js project. `pnpm dlx apitrail install` detects your stack, installs deps, writes the edge-safe instrumentation, and creates the schema. Plus init, status, and drop commands.",
+  "license": "MIT",
+  "author": "apitrail contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osharim/apitrail.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://apitrail.io",
+  "bugs": "https://github.com/osharim/apitrail/issues",
+  "keywords": [
+    "apitrail",
+    "cli",
+    "setup",
+    "wizard",
+    "installer",
+    "scaffolding",
+    "nextjs",
+    "postgres",
+    "logger",
+    "developer-tools"
+  ],
+  "type": "module",
+  "bin": {
+    "apitrail": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "pnpm clean && pnpm build"
+  },
+  "dependencies": {
+    "@apitrail/postgres": "workspace:*",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

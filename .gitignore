@@ -1,0 +1,13 @@
+node_modules
+dist
+.next
+.turbo
+coverage
+*.log
+.DS_Store
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+# allow docs images
+!docs/images/*
