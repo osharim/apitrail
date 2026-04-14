@@ -92,6 +92,87 @@ export function installCapture(options: InstallOptions): void {
     patchRequestWithProxy(options)
     patchRequestBodyMethods(options)
     patchResponse(options)
+    // Don't await — NextResponse patching can happen after the first requests
+    // start flowing; it still fixes subsequent ones. Guarded against failures.
+    void patchNextResponse(options)
+  }
+}
+
+/**
+ * Patch `NextResponse` from `next/server` — the class Next.js route handlers
+ * usually return (`NextResponse.json(...)`, `new NextResponse(...)`,
+ * `NextResponse.redirect(...)`).
+ *
+ * `NextResponse extends Response`, but the `extends Response` binding was
+ * captured at class-definition time against the ORIGINAL `Response` (not
+ * our patched global), so `super(body, init)` inside NextResponse bypasses
+ * our global Response patch. This function patches NextResponse's own
+ * static methods + constructor so we see the body anyway.
+ *
+ * Safe to call from any runtime: if `next/server` isn't importable (e.g.
+ * Edge bundle, non-Next.js app) we silently no-op.
+ */
+async function patchNextResponse(opts: InstallOptions): Promise<void> {
+  try {
+    const mod = (await import('next/server')) as {
+      NextResponse?: {
+        new (body?: unknown, init?: ResponseInit): Response
+        json?: (data: unknown, init?: ResponseInit) => Response
+        redirect?: (...args: unknown[]) => Response
+        rewrite?: (...args: unknown[]) => Response
+        next?: (...args: unknown[]) => Response
+      }
+    }
+    const NextResponse = mod.NextResponse
+    if (!NextResponse) return
+
+    const captureFromResponse = (body: unknown, resp: Response): void => {
+      const key = currentKey()
+      if (!key) return
+      const c = getOrCreate(key)
+      if (opts.captureHeaders) c.resHeaders = headersToObject(resp.headers)
+      if (opts.captureBodies) c.resBodyRef = body
+    }
+
+    // Wrap NextResponse.json — the most common path for App Router handlers.
+    const origJson = NextResponse.json
+    if (typeof origJson === 'function') {
+      try {
+        NextResponse.json = function patchedNextJson(
+          data: unknown,
+          init?: ResponseInit,
+        ): Response {
+          const resp = origJson.call(NextResponse, data, init)
+          captureFromResponse(data, resp)
+          return resp
+        }
+      } catch {
+        // Non-writable static — skip
+      }
+    }
+
+    // Wrap the constructor via prototype-chain-friendly Proxy. We set the
+    // patched version back as the module export if the binding is writable.
+    const Patched = new Proxy(NextResponse, {
+      construct(target, args, newTarget) {
+        const resp = Reflect.construct(target, args, newTarget) as Response
+        try {
+          captureFromResponse(args[0], resp)
+        } catch {
+          // Never break the response path.
+        }
+        return resp
+      },
+    })
+    try {
+      ;(mod as unknown as { NextResponse: unknown }).NextResponse = Patched
+    } catch {
+      // ES-module live binding — the direct reimport still resolves to the
+      // wrapped static (we patched .json above). We lose the `new NextResponse`
+      // capture path but keep the commonest one.
+    }
+  } catch {
+    // next/server unavailable — silent no-op
   }
 }
 
