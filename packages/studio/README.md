@@ -1,77 +1,127 @@
 # @apitrail/studio
 
-> Standalone dev dashboard for [apitrail](https://apitrail.io). Run `pnpm dlx @apitrail/studio --db $DATABASE_URL` and get a real-time UI on `localhost:4545`.
+> **Prisma-Studio-style standalone dashboard** for [apitrail](https://github.com/osharim/apitrail). `pnpm dlx @apitrail/studio` → `localhost:4545` → beautiful dark UI with KPIs, filters, and Chrome-DevTools-style waterfalls of every captured request. No embedding, no auth gymnastics.
 
-Think of this as **Prisma Studio for your API logs**. No embedding, no auth gymnastics, no production weight — just a beautiful standalone tool for monitoring, debugging, and exploring what your Next.js app is doing.
+[![npm](https://img.shields.io/npm/v/@apitrail/studio/alpha?color=a78bfa&label=npm)](https://www.npmjs.com/package/@apitrail/studio)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Why standalone?
+## 60-second quick start
 
-The embeddable `@apitrail/dashboard` is Server-Component-only (no client interactivity, limited styling flexibility). `@apitrail/studio` is the opposite:
+```bash
+DATABASE_URL='postgres://…' pnpm dlx @apitrail/studio
+```
 
-- **Full SPA** — React 19, client-side state, URL filters, polling refresh, eventually live tail over SSE
-- **Its own server** — Hono, tiny JSON API, no Next.js weight
+A browser tab opens at `http://127.0.0.1:4545`. If the table doesn't exist yet:
+
+```bash
+pnpm dlx @apitrail/cli init
+```
+
+## Why a separate server?
+
+The embeddable `@apitrail/dashboard` is Server-Component-only — limited interactivity, CSS constrained by the host app, auth has to be wired manually. `@apitrail/studio` is the opposite:
+
+- **Full SPA** — React 19, client-side state, URL-shareable filters, polling refresh
+- **Its own server** — Hono + tiny JSON API, no Next.js weight
 - **Not in your app bundle** — ship `apitrail` core to prod, run studio only in dev / ops
 - **Works with any framework** — as long as the data lives in `apitrail_spans`
 
-## Usage
+## CLI
 
 ```bash
-# One-off via dlx (no global install)
-pnpm dlx @apitrail/studio --db $DATABASE_URL
-
-# Install globally and run
-pnpm add -g @apitrail/studio
-apitrail-studio --db postgres://…
+apitrail-studio [options]
+pnpm dlx @apitrail/studio [options]
 ```
-
-Output:
-
-```
-  ● apitrail studio v0.1.0-alpha.0
-  → http://127.0.0.1:4545
-  Press Ctrl+C to stop.
-```
-
-## Options
 
 | Flag | Default | Description |
 |---|---|---|
-| `--db <url>` | `$APITRAIL_DATABASE_URL`, `$DATABASE_URL`, `$POSTGRES_URL` | Connection string |
+| `--db <url>` | `$APITRAIL_DATABASE_URL` / `$DATABASE_URL` / `$POSTGRES_URL` | Postgres connection string |
 | `--port <n>` | `4545` | HTTP port |
-| `--host <addr>` | `127.0.0.1` | Bind address. Use `0.0.0.0` for LAN |
+| `--host <addr>` | `127.0.0.1` | Bind address. Use `0.0.0.0` for LAN (**requires `--auth-basic`**) |
 | `--table <name>` | `apitrail_spans` | Span table to read from |
+| `--auth-basic <u:p>` | — | Enable HTTP Basic Auth. **Required when host is non-loopback.** |
 | `--no-ssl` | — | Disable SSL on the pg connection |
 | `--no-open` | — | Don't auto-open the browser |
-| `--dev` | — | Enable CORS, skip UI serving (only JSON API — used when developing studio itself) |
+| `--dev` | — | CORS on, skip serving the built UI (for developing studio itself) |
+| `-v`, `--version` | — | Print version |
+| `-h`, `--help` | — | Show help |
 
-## Features (v0.1)
+### Environment
 
-- **Overview** — requests/24h, errors, slow, p50, p95 (polling every 10 s)
-- **Requests explorer** — method / status-class / path filters, sticky top, selectable rows
-- **Trace detail** — side drawer with meta, waterfall of child spans, request/response headers + bodies (JSON pretty-printed)
-- **Dark, fast, keyboard-friendly** — no framework overhead on the wire
+| Variable | Purpose |
+|---|---|
+| `APITRAIL_DATABASE_URL` | Preferred connection string |
+| `DATABASE_URL` | Fallback |
+| `POSTGRES_URL` | Fallback |
+| `APITRAIL_STUDIO_AUTH` | `user:pass` for basic auth (alternative to `--auth-basic`) |
+| `NO_COLOR=1` | Disable colored CLI output |
 
-## Roadmap (v0.2+)
+## What you see
 
-- Live tail via SSE
-- Full-text search in bodies
-- Error grouping by fingerprint
-- Endpoint analytics (per-path latency percentiles)
-- Saved filter presets in URL
-- Auth for remote deployments (`--auth-basic user:pass` or an `--auth-token`)
+| View | Contents |
+|---|---|
+| **Overview** | Requests/24h, errors, slow, p50, p95 — polls every 10 s |
+| **Requests explorer** | Method / status-class / path-substring filters, 5 s polling, Enter/Space on a focused row opens the detail drawer |
+| **Trace detail drawer** | Full meta (trace_id, span_id, route, runtime, host, UA, referer), Chrome-DevTools-style waterfall of child spans, Request / Response headers + bodies pretty-printed with masking applied |
+
+## Deployment patterns
+
+### Local dev (default)
+
+```bash
+pnpm dlx @apitrail/studio
+```
+
+Binds `127.0.0.1:4545`. Only processes on your machine can reach it. No auth needed.
+
+### Team dev server on LAN
+
+```bash
+APITRAIL_STUDIO_AUTH="alice:$(openssl rand -hex 16)" \
+  pnpm dlx @apitrail/studio --host 0.0.0.0
+```
+
+If you try `--host 0.0.0.0` **without** auth, studio refuses to start. This is intentional — your logs contain bodies and headers that may include sensitive data even after masking.
+
+### Behind a reverse proxy with TLS
+
+```caddy
+apitrail.mycompany.com {
+  reverse_proxy 127.0.0.1:4545
+}
+```
+
+See the full walkthrough in [docs/STUDIO_SETUP.md](https://github.com/osharim/apitrail/blob/main/docs/STUDIO_SETUP.md).
 
 ## Security
 
-- **Default binding: `127.0.0.1`.** Only processes on your machine reach studio.
-- **Refuses to start on non-loopback hosts without `--auth-basic`.** This is enforced at CLI parse time — you cannot accidentally expose logs.
-- **HTTP Basic Auth** (`--auth-basic user:pass` or `APITRAIL_STUDIO_AUTH=user:pass`) uses constant-time SHA-256 comparison.
-- **Strict security headers** on every response: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex, nofollow`.
-- **Rate limit** on `/api/*` routes: 300 req / min per client IP.
-- **Parametrized SQL**: every user input hits Postgres as a bound parameter; table names are regex-validated identifiers; trace IDs must match `/^[0-9a-f]{32}$/`.
-- **Sanitized error responses**: 500s return `{"error":"internal error"}` — the actual SQL / stack trace is logged server-side only.
+- **Default binding: `127.0.0.1`.** Only your machine reaches studio.
+- **Refuses to start on non-loopback without `--auth-basic`.** Enforced at CLI parse time.
+- **HTTP Basic Auth** uses constant-time SHA-256 comparison (no timing-leak).
+- **Strict response headers** on every request:
+  ```
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'; object-src 'none'
+  X-Content-Type-Options:  nosniff
+  X-Frame-Options:         DENY
+  Referrer-Policy:         no-referrer
+  X-Robots-Tag:            noindex, nofollow
+  ```
+- **Rate limit** on `/api/*`: 300 req/min/IP.
+- **Parametrised SQL** — every value binds through pg. Identifier regex-whitelisted. Trace IDs must match `/^[0-9a-f]{32}$/`.
+- **Strict numeric validation** — `/api/spans?minStatus=…` refuses floats, scientific notation, hex, trailing garbage.
+- **Sanitised error responses** — 500s return `{"error":"internal error"}`; the real SQL / stack trace is logged server-side only.
 
-For LAN / remote deploys, see the full threat model in [SECURITY.md](../../SECURITY.md) and the [setup walkthrough](../../docs/STUDIO_SETUP.md).
+Full threat model in [SECURITY.md](https://github.com/osharim/apitrail/blob/main/SECURITY.md).
+
+## Roadmap
+
+- ⏳ Live tail over SSE
+- ⏳ Full-text search in request/response bodies
+- ⏳ Error grouping by stack fingerprint
+- ⏳ Per-endpoint latency percentile charts
+- ⏳ Saved filter presets in the URL
+- ⏳ Keyboard shortcuts (⌘K command palette)
 
 ## License
 
-MIT
+MIT — [full repo](https://github.com/osharim/apitrail)

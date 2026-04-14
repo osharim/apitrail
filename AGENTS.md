@@ -4,14 +4,15 @@ Instructions for AI coding agents working on the apitrail repo itself. For agent
 
 ## What this repo is
 
-A TypeScript monorepo that publishes four npm packages:
+A TypeScript monorepo that publishes five npm packages:
 
 | Package | npm | Purpose |
 |---|---|---|
-| `apitrail` | [apitrail](https://www.npmjs.com/package/apitrail) | Core: `register()`, OTEL processor, body capture, masking |
-| `@apitrail/postgres` | [@apitrail/postgres](https://www.npmjs.com/package/@apitrail/postgres) | Postgres storage adapter |
-| `@apitrail/cli` | [@apitrail/cli](https://www.npmjs.com/package/@apitrail/cli) | `apitrail init / status / drop` |
-| `@apitrail/dashboard` | [@apitrail/dashboard](https://www.npmjs.com/package/@apitrail/dashboard) | Embeddable Next.js UI |
+| `apitrail` | [apitrail](https://www.npmjs.com/package/apitrail) | Core: `register()`, OTEL processor, body capture, masking, auto-instrument |
+| `@apitrail/postgres` | [@apitrail/postgres](https://www.npmjs.com/package/@apitrail/postgres) | Postgres storage adapter (edge-safe, lazy-loads `pg`) |
+| `@apitrail/cli` | [@apitrail/cli](https://www.npmjs.com/package/@apitrail/cli) | `apitrail install / init / status / drop` |
+| `@apitrail/studio` | [@apitrail/studio](https://www.npmjs.com/package/@apitrail/studio) | Standalone dev dashboard (Hono + Vite + React) |
+| `@apitrail/dashboard` | [@apitrail/dashboard](https://www.npmjs.com/package/@apitrail/dashboard) | Embeddable Next.js Server Component UI |
 
 ## Layout
 
@@ -19,11 +20,15 @@ A TypeScript monorepo that publishes four npm packages:
 apitrail/
 ├── packages/
 │   ├── apitrail/          # core (entry: src/index.ts)
-│   ├── postgres/          # adapter (entry: src/index.ts)
-│   ├── cli/               # CLI (entry: src/cli.ts)
-│   └── dashboard/         # UI (entry: src/index.tsx)
+│   ├── postgres/          # adapter (entry: src/index.ts, schema via /schema subpath)
+│   ├── cli/               # CLI (entry: src/cli.ts, commands in commands/)
+│   ├── studio/            # standalone dashboard (Hono server + Vite SPA)
+│   └── dashboard/         # embeddable RSC UI (entry: src/index.tsx)
 ├── apps/
 │   └── example/           # Next.js 15 reference app — do NOT break this
+├── docs/
+│   ├── STUDIO_SETUP.md    # studio deployment walkthrough
+│   └── images/            # hero screenshot, etc.
 ├── .github/workflows/     # CI (ci.yml) + release (release.yml)
 ├── tsconfig.base.json     # shared compiler options
 ├── tsconfig.lib.json      # shared lib-package tsconfig
@@ -31,6 +36,22 @@ apitrail/
 ├── turbo.json             # task graph
 └── pnpm-workspace.yaml
 ```
+
+Key source files by subsystem:
+
+| Subsystem | File |
+|---|---|
+| Public config shape | `packages/apitrail/src/types.ts` |
+| Config defaults + resolution | `packages/apitrail/src/config.ts` |
+| OTEL span → SpanEntry conversion | `packages/apitrail/src/processor.ts` |
+| Monkey-patches (Request / Response) | `packages/apitrail/src/capture.ts` |
+| PII masking + query-string stripping | `packages/apitrail/src/mask.ts` |
+| Auto-detection of OTEL instrumentations | `packages/apitrail/src/auto-instrument.ts` |
+| Batched writes | `packages/apitrail/src/queue.ts` |
+| Studio server + APIs | `packages/studio/src/server/` |
+| Studio UI | `packages/studio/src/ui/` |
+| Install wizard | `packages/cli/src/commands/install.ts` |
+| CLI command router | `packages/cli/src/cli.ts` |
 
 ## Canonical commands
 
@@ -132,7 +153,16 @@ When you need to understand a subsystem quickly:
 | What gets captured | `packages/apitrail/src/processor.ts` + `capture.ts` |
 | What goes into Postgres | `packages/postgres/src/schema.ts` + `index.ts` |
 | Dashboard queries | `packages/dashboard/src/queries.ts` |
+| Studio server endpoints | `packages/studio/src/server/index.ts` |
+| Install wizard flow | `packages/cli/src/commands/install.ts` |
+| Auto-detected OTEL packages | `packages/apitrail/src/auto-instrument.ts` |
 | How `register()` wires things | `packages/apitrail/src/register.ts` |
+
+## Current stats (keep in sync when changing code)
+
+- **101 tests** across the monorepo (49 apitrail + 14 postgres + 7 cli + 21 studio + 10 dashboard).
+- **~6 KB gzipped** core package runtime.
+- Supported Node runtimes: **≥ 20**. Supported Next.js: **≥ 15**.
 
 ## Source of truth for config
 
