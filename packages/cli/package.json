@@ -28,12 +28,7 @@
     "apitrail": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": {
     "node": ">=20"
   },

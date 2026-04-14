@@ -1,8 +1,8 @@
 import { SpanKind as OtelSpanKind, SpanStatusCode } from '@opentelemetry/api'
 import type { ReadableSpan, SpanProcessor } from '@opentelemetry/sdk-trace-base'
-import { popCaptured } from './capture.js'
+import { popCaptured, stringifyBodyRef } from './capture.js'
 import { shouldSkipPath } from './config.js'
-import { maskHeaders, maskJsonString } from './mask.js'
+import { maskHeaders, maskJsonString, splitAndMaskPath } from './mask.js'
 import type { BatchQueue } from './queue.js'
 import { shouldSample } from './sampling.js'
 import type { ResolvedConfig, SpanEntry, SpanKind, SpanStatus } from './types.js'
@@ -84,6 +84,16 @@ function spanToEntry(span: ReadableSpan, kind: SpanKind, config: ResolvedConfig)
   const ctx = span.spanContext()
   const method = str(attr(span, HTTP_METHOD_KEYS))
 
+  // Strip + mask any query string so API keys / tokens passed as query
+  // params don't land unmasked in the canonical `path` column.
+  const rawPath = str(attr(span, HTTP_PATH_KEYS))
+  const { path, query } = rawPath
+    ? splitAndMaskPath(rawPath, config.maskKeys)
+    : { path: undefined, query: '' }
+
+  const attrs = collectAttributes(span)
+  if (query) attrs['url.query_masked'] = query
+
   const entry: SpanEntry = {
     traceId: ctx.traceId,
     spanId: ctx.spanId,
@@ -94,7 +104,7 @@ function spanToEntry(span: ReadableSpan, kind: SpanKind, config: ResolvedConfig)
     startTime: hrToMs(span.startTime),
     durationMs: hrToMs(span.duration),
     method: method?.toUpperCase(),
-    path: str(attr(span, HTTP_PATH_KEYS)),
+    path,
     route: str(attr(span, HTTP_ROUTE_KEYS)),
     statusCode: num(attr(span, HTTP_STATUS_KEYS)),
     host: str(attr(span, HTTP_HOST_KEYS)),
@@ -103,7 +113,7 @@ function spanToEntry(span: ReadableSpan, kind: SpanKind, config: ResolvedConfig)
     referer: str(attr(span, HTTP_REFERER_KEYS)),
     serviceName: config.serviceName,
     runtime: detectRuntime(),
-    attributes: collectAttributes(span),
+    attributes: attrs,
   }
 
   if (span.status.message) {
@@ -131,8 +141,11 @@ function attachCaptured(entry: SpanEntry, config: ResolvedConfig): void {
     if (captured.resHeaders) entry.resHeaders = maskHeaders(captured.resHeaders, config.maskKeys)
   }
   if (config.captureBodies) {
-    entry.reqBody = maskJsonString(captured.reqBody, config.maskKeys)
-    entry.resBody = maskJsonString(captured.resBody, config.maskKeys)
+    // Stringify deferred body refs here, OFF the request hot path.
+    const reqBody = stringifyBodyRef(captured.reqBodyRef, config.maxBodySize)
+    const resBody = stringifyBodyRef(captured.resBodyRef, config.maxBodySize)
+    entry.reqBody = maskJsonString(reqBody, config.maskKeys)
+    entry.resBody = maskJsonString(resBody, config.maskKeys)
   }
 }
 
