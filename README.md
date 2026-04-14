@@ -248,7 +248,8 @@ All packages live in the `@apitrail/*` npm organization.
 - [ ] Live tail over SSE in studio
 - [ ] Full-text search in bodies
 - [ ] Error grouping by fingerprint
-- [ ] MongoDB, MySQL, SQLite adapters
+- [ ] MongoDB, MySQL, SQLite storage adapters
+- [ ] Framework adapters beyond Next.js (Hono, Elysia, Remix, Fastify, Express)
 - [ ] Hosted docs site at apitrail.io
 
 ---

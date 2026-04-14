@@ -28,16 +28,26 @@ Done. Every request to the Next.js app is now captured.
 
 ## Requirements
 
-- Next.js **>= 15.0.0** (App Router)
-- Node.js **>= 20**
-- A Postgres-compatible database (Supabase, Neon, RDS, self-hosted, or local Docker)
+- **Next.js ≥ 15** (App Router) — this is a **Next.js-first tool**. See below.
+- Node.js **≥ 20**
+- A Postgres-compatible database (Supabase, Neon, RDS, self-hosted, local Docker — anything speaking the pg wire protocol)
+
+## Supported frameworks
+
+**Next.js 15+ is the only framework we test and support today.** apitrail leans on three Next-specific primitives:
+
+- `instrumentation.ts` convention — registered via `@vercel/otel`
+- Edge/Node runtime split handled automatically
+- `NextResponse` body capture (route handlers that `return NextResponse.json(...)` are intercepted specifically; plain `Response.json(...)` from any runtime works too)
+
+Other Node frameworks (Hono, Elysia, Remix, Express, Fastify, plain Node) would need:
+
+- A different registration entry point (apitrail doesn't expose one yet)
+- Their own framework-response-class patch if they wrap `Response` the way Next wraps it with `NextResponse`
+
+If there's demand for another framework, open an issue. For now, **if your project is not Next.js 15+, this library won't help you.**
 
 ## Install
-
-### Minimum (console logging, dev only)
-```bash
-pnpm add apitrail
-```
 
 ### Recommended (Postgres persistence)
 ```bash
