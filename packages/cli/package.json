@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/cli",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "CLI for apitrail — init schema, inspect, drop.",
   "license": "MIT",
   "author": "apitrail contributors",
@@ -11,22 +11,13 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": [
-    "apitrail",
-    "cli",
-    "postgres"
-  ],
+  "keywords": ["apitrail", "cli", "postgres"],
   "type": "module",
   "bin": {
     "apitrail": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": {
     "node": ">=20"
   },

@@ -1,0 +1,30 @@
+# apitrail
+
+> The API logger for Next.js (and beyond). OpenTelemetry-based capture of every request — method, path, status, duration, headers, bodies, and the full waterfall of child spans — persisted to your own Postgres database.
+
+apitrail ships as four npm packages under one repo. It captures Next.js App Router requests via a `SpanProcessor` registered through `@vercel/otel` and uses a global `Request`/`Response` monkey-patch to capture bodies (optional, on by default). Bodies and headers are redacted by a built-in mask list.
+
+## Docs
+
+- [Integrating apitrail into a project](https://github.com/osharim/apitrail/blob/main/INTEGRATING.md): canonical copy-paste guide. Lists the exact `ApitrailConfig` shape so agents do not invent keys.
+- [Agents guide](https://github.com/osharim/apitrail/blob/main/AGENTS.md): for agents working on the apitrail repo itself — commands, conventions, danger zones.
+- [README](https://github.com/osharim/apitrail/blob/main/README.md): project overview.
+- [RELEASE process](https://github.com/osharim/apitrail/blob/main/RELEASE.md): how new versions are cut.
+
+## Packages
+
+- [apitrail](https://github.com/osharim/apitrail/blob/main/packages/apitrail/README.md): core. `register()`, `defineConfig`, `consoleAdapter`, masking utilities.
+- [@apitrail/postgres](https://github.com/osharim/apitrail/blob/main/packages/postgres/README.md): Postgres storage adapter. Emits `apitrail_spans`.
+- [@apitrail/cli](https://github.com/osharim/apitrail/blob/main/packages/cli/README.md): `apitrail init | status | drop` for schema management.
+- [@apitrail/dashboard](https://github.com/osharim/apitrail/blob/main/packages/dashboard/README.md): embeddable Next.js Server Components for the admin UI.
+
+## Contributing
+
+- [CONTRIBUTING](https://github.com/osharim/apitrail/blob/main/CONTRIBUTING.md): PR flow, branching, changesets.
+- [CODE_OF_CONDUCT](https://github.com/osharim/apitrail/blob/main/CODE_OF_CONDUCT.md)
+- [SECURITY](https://github.com/osharim/apitrail/blob/main/SECURITY.md): how to report vulnerabilities.
+
+## Optional
+
+- [Example Next.js app](https://github.com/osharim/apitrail/tree/main/apps/example): reference integration; working end-to-end against a real Supabase.
+- [Source of truth for config types](https://github.com/osharim/apitrail/blob/main/packages/apitrail/src/types.ts): `ApitrailConfig`, `ResolvedConfig`, `SpanEntry`, `StorageAdapter`.

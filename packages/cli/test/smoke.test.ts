@@ -30,7 +30,7 @@ describe.skipIf(!built)('apitrail CLI smoke tests', () => {
   it('prints version with --version', () => {
     const { stdout, code } = run(['--version'])
     expect(code).toBe(0)
-    expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+$/)
+    expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+(-[\w.]+)?$/)
   })
 
   it('prints help with no args', () => {
