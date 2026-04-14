@@ -65,6 +65,34 @@ export function popCaptured(traceId: string): Captured | undefined {
   return c
 }
 
+/**
+ * Merge two candidate response bodies, preferring the most-serialisable one.
+ *
+ * A single request typically triggers several Response captures:
+ *
+ *  1. The user's handler calls \`NextResponse.json(data)\` — we capture the
+ *     raw object (most useful).
+ *  2. Inside NextResponse.json, Next.js calls \`Response.json(data)\` — we
+ *     capture the raw object again via the global patch.
+ *  3. Inside Response.json, Next.js eventually does
+ *     \`new NextResponse(response.body, response)\` — \`response.body\` is a
+ *     ReadableStream at this point.
+ *
+ * If we naively last-wins the third capture, the stored body is a stream
+ * marker ("[stream]") and the user sees nothing useful. Rule: never
+ * replace a usable (non-stream, non-nullish) body with a ReadableStream.
+ */
+function mergeResBody(existing: unknown, incoming: unknown): unknown {
+  const incomingIsStream =
+    typeof ReadableStream !== 'undefined' && incoming instanceof ReadableStream
+  const existingIsUsable =
+    existing !== undefined &&
+    existing !== null &&
+    !(typeof ReadableStream !== 'undefined' && existing instanceof ReadableStream)
+  if (incomingIsStream && existingIsUsable) return existing
+  return incoming
+}
+
 function headersToObject(h: Headers): Record<string, string> {
   const obj: Record<string, string> = {}
   h.forEach((value, key) => {
@@ -131,7 +159,7 @@ async function patchNextResponse(opts: InstallOptions): Promise<void> {
       if (!key) return
       const c = getOrCreate(key)
       if (opts.captureHeaders) c.resHeaders = headersToObject(resp.headers)
-      if (opts.captureBodies) c.resBodyRef = body
+      if (opts.captureBodies) c.resBodyRef = mergeResBody(c.resBodyRef, body)
     }
 
     // Wrap NextResponse.json — the most common path for App Router handlers.
@@ -277,9 +305,8 @@ function patchResponse(opts: InstallOptions): void {
     const key = currentKey()
     if (!key) return
     const c = getOrCreate(key)
-    // Last-wins: always overwrite.
     if (opts.captureHeaders) c.resHeaders = headersToObject(resp.headers)
-    if (opts.captureBodies) c.resBodyRef = body
+    if (opts.captureBodies) c.resBodyRef = mergeResBody(c.resBodyRef, body)
   }
 
   function PatchedResponse(this: unknown, body?: unknown, init?: ResponseInit): Response {
