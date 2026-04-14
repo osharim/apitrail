@@ -8,13 +8,13 @@
 ## Install
 
 ```bash
-pnpm add apitrail @apitrail/postgres pg
+pnpm add @apitrail/core @apitrail/postgres pg
 ```
 
 Or let the wizard do it:
 
 ```bash
-pnpm dlx apitrail install
+pnpm dlx @apitrail/cli install
 ```
 
 ## Usage (edge-safe pattern)
@@ -24,7 +24,7 @@ pnpm dlx apitrail install
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   await apitrailRegister(

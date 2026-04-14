@@ -5,13 +5,13 @@ A copy-paste-ready guide for integrating apitrail into an existing Next.js proje
 ## TL;DR (90 seconds)
 
 ```bash
-pnpm add apitrail @apitrail/postgres
+pnpm add @apitrail/core @apitrail/postgres
 pnpm dlx @apitrail/cli init            # creates the apitrail_spans table
 ```
 
 ```ts
 // instrumentation.ts  (next to package.json)
-import { defineConfig, register as apitrailRegister } from 'apitrail'
+import { defineConfig, register as apitrailRegister } from '@apitrail/core'
 import { postgresAdapter } from '@apitrail/postgres'
 
 const config = defineConfig({
@@ -41,13 +41,13 @@ pnpm add apitrail
 
 ### Recommended (Postgres persistence)
 ```bash
-pnpm add apitrail @apitrail/postgres pg
+pnpm add @apitrail/core @apitrail/postgres pg
 pnpm add -D @types/pg
 ```
 
 ### With the dashboard UI
 ```bash
-pnpm add apitrail @apitrail/postgres @apitrail/dashboard pg server-only
+pnpm add @apitrail/core @apitrail/postgres @apitrail/dashboard pg server-only
 pnpm add -D @types/pg
 ```
 
@@ -88,7 +88,7 @@ Next.js 15 reads this file from the project root automatically. Do not import it
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   const config = defineConfig({
@@ -109,7 +109,7 @@ Supabase's pooler uses SSL with a self-signed cert. Pass `ssl.rejectUnauthorized
 // instrumentation.ts
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   await apitrailRegister(defineConfig({
@@ -134,7 +134,7 @@ export async function register() {
     DEFAULT_MASK_KEYS,
     defineConfig,
     register: apitrailRegister,
-  } = await import('apitrail')
+  } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   const config = defineConfig({
@@ -178,7 +178,7 @@ export async function register() {
 These are the **only** keys `defineConfig` accepts. Anything else is silently ignored at runtime even if TypeScript lets it through.
 
 ```ts
-import type { ApitrailConfig, SamplingConfig, StorageAdapter } from 'apitrail'
+import type { ApitrailConfig, SamplingConfig, StorageAdapter } from '@apitrail/core'
 
 const config: ApitrailConfig = {
   // ── Identity ──────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ credit_card, creditcard, card_number, cvv, ssn
 When you pass `maskKeys: [...]` in your config, **your list replaces the defaults entirely** — if you want to add to them, do:
 
 ```ts
-import { DEFAULT_MASK_KEYS } from 'apitrail'
+import { DEFAULT_MASK_KEYS } from '@apitrail/core'
 
 defineConfig({
   maskKeys: [...DEFAULT_MASK_KEYS, 'my_custom_secret'],
@@ -320,7 +320,7 @@ If you need non-default constructor options, turn auto off and pass your own:
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
   const { PgInstrumentation } = await import('@opentelemetry/instrumentation-pg')
 
@@ -453,7 +453,7 @@ The CLI init was never run. Run `pnpm dlx @apitrail/cli init` or `--print` the S
 ### `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` when running `pnpm dlx @apitrail/cli init`
 Known bug in `0.1.0-alpha.0` where `workspace:*` leaked into the published manifest. Fixed in `0.1.0-alpha.1+`. Upgrade:
 ```bash
-pnpm add apitrail@alpha @apitrail/postgres@alpha
+pnpm add @apitrail/core@alpha @apitrail/postgres@alpha
 ```
 
 ### `ReferenceError: React is not defined` from the dashboard
@@ -469,7 +469,7 @@ Fix: move the imports inside `register()`, gated behind a `NEXT_RUNTIME` check. 
 
 ```ts
 // WRONG — do not do this:
-import { defineConfig, register as apitrailRegister } from 'apitrail'
+import { defineConfig, register as apitrailRegister } from '@apitrail/core'
 import { postgresAdapter } from '@apitrail/postgres'
 
 export const register = () => apitrailRegister(/* ... */)
@@ -477,7 +477,7 @@ export const register = () => apitrailRegister(/* ... */)
 // CORRECT — edge-safe:
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
   // ... rest of config
 }

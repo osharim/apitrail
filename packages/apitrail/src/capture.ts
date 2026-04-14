@@ -89,51 +89,66 @@ export function installCapture(options: InstallOptions): void {
   globalCast[PATCH_MARK] = true
 
   if (captureHeaders || captureBodies) {
-    patchRequestConstructor(options)
+    patchRequestWithProxy(options)
     patchRequestBodyMethods(options)
     patchResponse(options)
   }
 }
 
 /**
- * Patch the global Request constructor so we grab headers as soon as an
- * incoming Request object exists — crucial for GET requests whose handlers
- * never call json()/text()/formData().
+ * Wrap the global `Request` constructor in a Proxy so we can observe
+ * every `new Request(...)` call without breaking identity semantics.
+ *
+ * Why a Proxy and not a plain function wrapper:
+ *  - Preserves `instanceof Request` checks — `Reflect.construct` returns
+ *    an instance of the original class.
+ *  - Preserves all static methods (Proxy default-forwards property reads
+ *    to the target).
+ *  - Preserves `new.target` for anyone subclassing Request.
+ *  - Preserves the original `.prototype` identity.
+ *  - Earlier attempt (plain function) broke Next.js's internal URL
+ *    plumbing with `Cannot read properties of undefined (reading
+ *    'pathname')`; Proxy fixes that.
  */
-function patchRequestConstructor(opts: InstallOptions): void {
+function patchRequestWithProxy(opts: InstallOptions): void {
   if (typeof Request === 'undefined') return
 
-  const OrigRequest = Request as unknown as new (input: unknown, init?: RequestInit) => Request
+  const OrigRequest = Request
 
-  function PatchedRequest(this: unknown, input: unknown, init?: RequestInit): Request {
-    const req = new OrigRequest(input, init)
-    const key = currentKey()
-    if (key) {
-      const c = getOrCreate(key)
-      // First-wins for headers — the incoming request's headers are the
-      // canonical ones; subsequent clones or framework-created Requests
-      // shouldn't clobber them.
-      if (opts.captureHeaders && !c.reqHeaders) {
-        c.reqHeaders = headersToObject(req.headers)
+  const PatchedRequest = new Proxy(OrigRequest, {
+    construct(target, args, newTarget) {
+      const req = Reflect.construct(target, args, newTarget) as Request
+      try {
+        const key = currentKey()
+        if (key) {
+          const c = getOrCreate(key)
+          // First-wins: incoming Request is canonical; clones / framework
+          // wrappers created later shouldn't overwrite these headers.
+          if (opts.captureHeaders && !c.reqHeaders) {
+            c.reqHeaders = headersToObject(req.headers)
+          }
+        }
+      } catch {
+        // Never let the capture path break the Request construction.
       }
-    }
-    return req
-  }
-
-  PatchedRequest.prototype = OrigRequest.prototype
+      return req
+    },
+  })
 
   try {
     ;(globalThis as unknown as { Request: unknown }).Request = PatchedRequest
   } catch {
-    // If the global is frozen, fall back to prototype-method patching below.
+    // Global frozen — prototype patches still run.
   }
 }
 
 /**
- * Fallback patch on Request.prototype body methods — catches headers for
- * requests whose constructor runs before this module loads (e.g. a Request
- * already crossed the middleware boundary). Also how we capture the request
- * body, which isn't available until the handler asks for it.
+ * Patch Request.prototype body methods. Fires when the handler calls
+ * req.json() / req.text() / req.formData() and captures both the parsed
+ * body (as a reference, stringified later) and the request headers.
+ *
+ * GET requests that never call these methods have their header info
+ * enriched from OTEL span attributes at processor.onEnd time instead.
  */
 function patchRequestBodyMethods(opts: InstallOptions): void {
   if (typeof Request === 'undefined') return

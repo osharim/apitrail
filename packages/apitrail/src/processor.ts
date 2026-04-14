@@ -134,19 +134,53 @@ function spanToEntry(span: ReadableSpan, kind: SpanKind, config: ResolvedConfig)
 
 function attachCaptured(entry: SpanEntry, config: ResolvedConfig): void {
   const captured = popCaptured(entry.traceId)
-  if (!captured) return
 
   if (config.captureHeaders) {
-    if (captured.reqHeaders) entry.reqHeaders = maskHeaders(captured.reqHeaders, config.maskKeys)
-    if (captured.resHeaders) entry.resHeaders = maskHeaders(captured.resHeaders, config.maskKeys)
+    // Base-case: assemble headers from the span's OTEL attributes. Next.js
+    // emits select headers as attributes (`user_agent.original`,
+    // `http.host`, `client.address`, `http.request.header.*`). This covers
+    // GET requests whose handlers never called req.json()/text(), where
+    // the prototype hook doesn't fire.
+    const fromSpan = extractHeadersFromAttributes(entry.attributes, entry)
+    const merged = { ...fromSpan, ...(captured?.reqHeaders ?? {}) }
+    if (Object.keys(merged).length) {
+      entry.reqHeaders = maskHeaders(merged, config.maskKeys)
+    }
+    if (captured?.resHeaders)
+      entry.resHeaders = maskHeaders(captured.resHeaders, config.maskKeys)
   }
-  if (config.captureBodies) {
+  if (config.captureBodies && captured) {
     // Stringify deferred body refs here, OFF the request hot path.
     const reqBody = stringifyBodyRef(captured.reqBodyRef, config.maxBodySize)
     const resBody = stringifyBodyRef(captured.resBodyRef, config.maxBodySize)
     entry.reqBody = maskJsonString(reqBody, config.maskKeys)
     entry.resBody = maskJsonString(resBody, config.maskKeys)
   }
+}
+
+/**
+ * Harvest request-header data from the OTEL span attributes so GET requests
+ * — which usually don't read a body and therefore never trigger the
+ * capture hook — still get meaningful req_headers.
+ */
+function extractHeadersFromAttributes(
+  attrs: SpanEntry['attributes'],
+  entry: SpanEntry,
+): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === undefined || v === null) continue
+    const lower = k.toLowerCase()
+    if (lower.startsWith('http.request.header.')) {
+      const name = lower.slice('http.request.header.'.length)
+      out[name] = String(v)
+    }
+  }
+  // Canonical entries that Next.js sets as first-class attributes
+  if (entry.userAgent) out['user-agent'] = entry.userAgent
+  if (entry.host) out.host = entry.host
+  if (entry.referer) out.referer = entry.referer
+  return out
 }
 
 function passesServerFilters(

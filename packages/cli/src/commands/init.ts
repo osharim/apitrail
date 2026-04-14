@@ -80,7 +80,7 @@ export async function init(argv: string[]): Promise<void> {
     console.log(dim('  Add this to your instrumentation.ts:'))
     console.log(
       dim(`
-    import { defineConfig, register as apitrailRegister } from 'apitrail'
+    import { defineConfig, register as apitrailRegister } from '@apitrail/core'
     import { postgresAdapter } from '@apitrail/postgres'
 
     const config = defineConfig({

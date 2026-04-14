@@ -1,9 +1,9 @@
-# apitrail
+# @apitrail/core
 
 > Self-hosted request logging for Next.js. Captures every HTTP request — method, path, status, duration, bodies, headers, and the **full child-span waterfall** — persisted to **your own Postgres**. Zero SaaS.
 
-[![npm](https://img.shields.io/npm/v/apitrail/alpha?color=a78bfa&label=npm)](https://www.npmjs.com/package/apitrail)
-[![Downloads](https://img.shields.io/npm/dm/apitrail?color=a78bfa)](https://www.npmjs.com/package/apitrail)
+[![npm](https://img.shields.io/npm/v/@apitrail/core/alpha?color=a78bfa&label=npm)](https://www.npmjs.com/package/@apitrail/core)
+[![Downloads](https://img.shields.io/npm/dm/@apitrail/core?color=a78bfa)](https://www.npmjs.com/package/@apitrail/core)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This is the **core** package. For the full picture and an end-to-end setup guide, see the [repo README](https://github.com/osharim/apitrail) or [INTEGRATING.md](https://github.com/osharim/apitrail/blob/main/INTEGRATING.md).
@@ -11,7 +11,7 @@ This is the **core** package. For the full picture and an end-to-end setup guide
 ## The one-liner
 
 ```bash
-pnpm dlx apitrail install
+pnpm dlx @apitrail/cli install
 ```
 
 That's the fastest path — it detects your stack, installs everything, writes your `instrumentation.ts`, creates the table, and (if you have `pg` / `drizzle-orm` / `ioredis` / etc.) offers to wire up query timings.
@@ -19,7 +19,7 @@ That's the fastest path — it detects your stack, installs everything, writes y
 ## Manual install
 
 ```bash
-pnpm add apitrail @apitrail/postgres pg
+pnpm add @apitrail/core @apitrail/postgres pg
 ```
 
 ```ts
@@ -27,7 +27,7 @@ pnpm add apitrail @apitrail/postgres pg
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   await apitrailRegister(
@@ -54,7 +54,7 @@ export async function register() {
 ## Full config reference
 
 ```ts
-import type { ApitrailConfig } from 'apitrail'
+import type { ApitrailConfig } from '@apitrail/core'
 
 const config: ApitrailConfig = {
   // ── Identity ──────────────────────────────────────────────────────────

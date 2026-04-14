@@ -112,7 +112,7 @@ export async function install(argv: string[]): Promise<void> {
   // ── 4. Install packages ───────────────────────────────────────────────
   if (values.install && !values['no-install']) {
     log.step('Installing packages')
-    const deps = ['apitrail@alpha', '@apitrail/postgres@alpha', 'pg']
+    const deps = ['@apitrail/core@alpha', '@apitrail/postgres@alpha', 'pg']
     if (withDashboard) deps.push('@apitrail/dashboard@alpha', 'server-only')
     for (const pkg of chosenInstrumentations) deps.push(pkg)
     const devDeps = ['@types/pg']
@@ -231,7 +231,7 @@ function renderInstrumentation(ts: boolean, tableName: string | undefined): stri
   return `${fileHeader}export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { DEFAULT_MASK_KEYS, defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { DEFAULT_MASK_KEYS, defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   await apitrailRegister(

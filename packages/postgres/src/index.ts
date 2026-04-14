@@ -1,4 +1,4 @@
-import type { SpanEntry, StorageAdapter } from 'apitrail'
+import type { SpanEntry, StorageAdapter } from '@apitrail/core'
 import type pg from 'pg'
 import { createSchemaSQL, quoteIdent } from './schema.js'
 import type { PostgresAdapterOptions } from './types.js'

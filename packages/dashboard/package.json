@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/dashboard",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "description": "Embed a production-ready API-logs dashboard directly into your Next.js app. Drop-in Server Component with KPIs, request explorer, and waterfall detail view. One route mount, auth-callback ready, ships its own CSS.",
   "license": "MIT",
   "author": "apitrail contributors",
@@ -35,8 +35,15 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
-  "sideEffects": ["*.css"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "engines": {
     "node": ">=20"
   },

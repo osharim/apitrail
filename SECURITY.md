@@ -59,7 +59,7 @@ credit_card, creditcard, card_number, cvv, ssn
 Add your own with:
 
 ```ts
-import { DEFAULT_MASK_KEYS, defineConfig } from 'apitrail'
+import { DEFAULT_MASK_KEYS, defineConfig } from '@apitrail/core'
 
 defineConfig({
   maskKeys: [...DEFAULT_MASK_KEYS, 'my_app_specific_secret', 'stripe_secret'],

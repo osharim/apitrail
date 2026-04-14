@@ -8,7 +8,7 @@ A TypeScript monorepo that publishes five npm packages:
 
 | Package | npm | Purpose |
 |---|---|---|
-| `apitrail` | [apitrail](https://www.npmjs.com/package/apitrail) | Core: `register()`, OTEL processor, body capture, masking, auto-instrument |
+| `@apitrail/core` | [@apitrail/core](https://www.npmjs.com/package/@apitrail/core) | Core: `register()`, OTEL processor, body capture, masking, auto-instrument |
 | `@apitrail/postgres` | [@apitrail/postgres](https://www.npmjs.com/package/@apitrail/postgres) | Postgres storage adapter (edge-safe, lazy-loads `pg`) |
 | `@apitrail/cli` | [@apitrail/cli](https://www.npmjs.com/package/@apitrail/cli) | `apitrail install / init / status / drop` |
 | `@apitrail/studio` | [@apitrail/studio](https://www.npmjs.com/package/@apitrail/studio) | Standalone dev dashboard (Hono + Vite + React) |

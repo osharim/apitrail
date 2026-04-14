@@ -8,10 +8,10 @@
 
 Drop-in observability for Next.js App Router — every request, every body, every child span — persisted to **your own Postgres**. The open-source alternative to Sentry & Datadog for API observability.
 
-[![npm version](https://img.shields.io/npm/v/apitrail/alpha?label=apitrail&color=a78bfa&logo=npm&logoColor=white)](https://www.npmjs.com/package/apitrail)
+[![npm version](https://img.shields.io/npm/v/@apitrail/core/alpha?label=apitrail&color=a78bfa&logo=npm&logoColor=white)](https://www.npmjs.com/package/@apitrail/core)
 [![npm studio](https://img.shields.io/npm/v/@apitrail/studio/alpha?label=%40apitrail%2Fstudio&color=a78bfa&logo=npm&logoColor=white)](https://www.npmjs.com/package/@apitrail/studio)
-[![Downloads](https://img.shields.io/npm/dm/apitrail?color=a78bfa)](https://www.npmjs.com/package/apitrail)
-[![Bundle size](https://img.shields.io/bundlephobia/minzip/apitrail?label=bundle&color=a78bfa)](https://bundlephobia.com/package/apitrail)
+[![Downloads](https://img.shields.io/npm/dm/@apitrail/core?color=a78bfa)](https://www.npmjs.com/package/@apitrail/core)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/@apitrail/core?label=bundle&color=a78bfa)](https://bundlephobia.com/package/apitrail)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/osharim/apitrail/ci.yml?branch=main&label=CI&logo=github)](https://github.com/osharim/apitrail/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/osharim/apitrail?color=yellow)](./LICENSE)
@@ -34,7 +34,7 @@ Drop-in observability for Next.js App Router — every request, every body, ever
 ## ✨ Why apitrail?
 
 ```bash
-pnpm dlx apitrail install
+pnpm dlx @apitrail/cli install
 ```
 
 <sup>↑ One line. Detects your stack. Installs deps. Writes the instrumentation. Creates the table. Done.</sup>
@@ -103,13 +103,13 @@ You get **Sentry-quality request traces without sending data to a SaaS**: every 
 ### The one-liner
 
 ```bash
-pnpm dlx apitrail install
+pnpm dlx @apitrail/cli install
 ```
 
 The wizard will:
 1. 🔎 Detect your package manager (pnpm / npm / yarn / bun) and Next.js version
 2. 📄 Read `DATABASE_URL` from `.env.local` or prompt
-3. 📦 Install `apitrail` + `@apitrail/postgres` + `pg`
+3. 📦 Install `@apitrail/core` + `@apitrail/postgres` + `pg`
 4. ✍️ Write an **edge-safe** `instrumentation.ts` (backing up any existing one)
 5. 🔐 Append `DATABASE_URL` to `.env.local` if missing
 6. 🗄️ Create the `apitrail_spans` table in your database
@@ -117,7 +117,7 @@ The wizard will:
 
 ```bash
 # non-interactive, CI-safe:
-DATABASE_URL="postgres://…" pnpm dlx apitrail install --yes --with-dashboard
+DATABASE_URL="postgres://…" pnpm dlx @apitrail/cli install --yes --with-dashboard
 ```
 
 ### Or manually
@@ -126,7 +126,7 @@ DATABASE_URL="postgres://…" pnpm dlx apitrail install --yes --with-dashboard
 <summary>Click to expand</summary>
 
 ```bash
-pnpm add apitrail@alpha @apitrail/postgres@alpha
+pnpm add @apitrail/core@alpha @apitrail/postgres@alpha
 pnpm dlx @apitrail/cli@alpha init     # create the table
 ```
 
@@ -135,7 +135,7 @@ pnpm dlx @apitrail/cli@alpha init     # create the table
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   await apitrailRegister(
@@ -216,7 +216,7 @@ All packages live in the `@apitrail/*` npm organization.
 
 | Package | Description | Version |
 |---|---|---|
-| **[`apitrail`](./packages/apitrail)** | Core — `register()`, OTEL processor, body capture, masking | [![npm](https://img.shields.io/npm/v/apitrail/alpha?color=a78bfa&label=)](https://www.npmjs.com/package/apitrail) |
+| **[`@apitrail/core`](./packages/apitrail)** | Core — `register()`, `defineConfig`, OTEL processor, body capture, masking, auto-instrument | [![npm](https://img.shields.io/npm/v/@apitrail/core/alpha?color=a78bfa&label=)](https://www.npmjs.com/package/@apitrail/core) |
 | **[`@apitrail/postgres`](./packages/postgres)** | Postgres storage adapter — edge-safe, Supabase-ready | [![npm](https://img.shields.io/npm/v/@apitrail/postgres/alpha?color=a78bfa&label=)](https://www.npmjs.com/package/@apitrail/postgres) |
 | **[`@apitrail/cli`](./packages/cli)** | `apitrail install / init / status / drop` | [![npm](https://img.shields.io/npm/v/@apitrail/cli/alpha?color=a78bfa&label=)](https://www.npmjs.com/package/@apitrail/cli) |
 | **[`@apitrail/studio`](./packages/studio)** | Standalone dev dashboard — Prisma-Studio-style | [![npm](https://img.shields.io/npm/v/@apitrail/studio/alpha?color=a78bfa&label=)](https://www.npmjs.com/package/@apitrail/studio) |

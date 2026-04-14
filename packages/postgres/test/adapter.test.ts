@@ -1,4 +1,4 @@
-import type { SpanEntry } from 'apitrail'
+import type { SpanEntry } from '@apitrail/core'
 import { describe, expect, it, vi } from 'vitest'
 import { postgresAdapter } from '../src/index.js'
 

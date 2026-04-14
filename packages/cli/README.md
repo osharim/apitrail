@@ -8,7 +8,7 @@
 ## The flagship command
 
 ```bash
-pnpm dlx apitrail install
+pnpm dlx @apitrail/cli install
 ```
 
 Walks your project through:
@@ -24,7 +24,7 @@ Walks your project through:
 
 ```bash
 # non-interactive, CI-safe
-DATABASE_URL="postgres://…" pnpm dlx apitrail install --yes --with-dashboard
+DATABASE_URL="postgres://…" pnpm dlx @apitrail/cli install --yes --with-dashboard
 ```
 
 ### Flags
@@ -124,7 +124,7 @@ Your generated `instrumentation.ts` looks like this — all dynamic-imported, ed
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-  const { DEFAULT_MASK_KEYS, defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { DEFAULT_MASK_KEYS, defineConfig, register: apitrailRegister } = await import('@apitrail/core')
   const { postgresAdapter } = await import('@apitrail/postgres')
 
   await apitrailRegister(

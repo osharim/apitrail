@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/studio",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Prisma-Studio-style standalone dashboard for apitrail. `pnpm dlx @apitrail/studio` → localhost:4545 → beautiful dark UI with KPIs, filters, and Chrome-DevTools-style waterfalls of every captured request. No embedding, no auth gymnastics.",
   "license": "MIT",
   "author": "apitrail contributors",
@@ -30,7 +30,12 @@
     "apitrail-studio": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=20"
   },

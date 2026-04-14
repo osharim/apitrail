@@ -16,7 +16,7 @@ pnpm add @apitrail/dashboard pg server-only
 Or, let the wizard install + scaffold in one go:
 
 ```bash
-pnpm dlx apitrail install --with-dashboard
+pnpm dlx @apitrail/cli install --with-dashboard
 ```
 
 ## Usage
