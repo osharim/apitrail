@@ -1,7 +1,7 @@
 {
   "name": "@apitrail/cli",
-  "version": "0.1.0-alpha.2",
-  "description": "CLI for apitrail — init schema, inspect, drop.",
+  "version": "0.1.0-alpha.3",
+  "description": "One command to set up apitrail in any Next.js project. `pnpm dlx apitrail install` detects your stack, installs deps, writes the edge-safe instrumentation, and creates the schema. Plus init, status, and drop commands.",
   "license": "MIT",
   "author": "apitrail contributors",
   "repository": {
@@ -11,13 +11,29 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": ["apitrail", "cli", "postgres"],
+  "keywords": [
+    "apitrail",
+    "cli",
+    "setup",
+    "wizard",
+    "installer",
+    "scaffolding",
+    "nextjs",
+    "postgres",
+    "logger",
+    "developer-tools"
+  ],
   "type": "module",
   "bin": {
     "apitrail": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=20"
   },

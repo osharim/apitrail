@@ -1,7 +1,7 @@
 {
   "name": "@apitrail/dashboard",
-  "version": "0.1.0-alpha.2",
-  "description": "Embeddable Next.js dashboard for apitrail",
+  "version": "0.1.0-alpha.3",
+  "description": "Embed a production-ready API-logs dashboard directly into your Next.js app. Drop-in Server Component with KPIs, request explorer, and waterfall detail view. One route mount, auth-callback ready, ships its own CSS.",
   "license": "MIT",
   "author": "apitrail contributors",
   "repository": {
@@ -11,7 +11,18 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": ["apitrail", "dashboard", "nextjs", "observability", "ui"],
+  "keywords": [
+    "apitrail",
+    "dashboard",
+    "nextjs",
+    "observability",
+    "ui",
+    "server-components",
+    "embed",
+    "admin",
+    "logs-viewer",
+    "react"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -24,8 +35,15 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
-  "sideEffects": ["*.css"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "engines": {
     "node": ">=20"
   },

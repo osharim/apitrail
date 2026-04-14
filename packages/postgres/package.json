@@ -1,7 +1,7 @@
 {
   "name": "@apitrail/postgres",
-  "version": "0.1.0-alpha.2",
-  "description": "Postgres storage adapter for apitrail",
+  "version": "0.1.0-alpha.3",
+  "description": "Store your API logs in Postgres. The official Postgres storage adapter for apitrail — edge-safe, lazy-loaded, works with Supabase / Neon / RDS / self-hosted. One table, smart indexes, zero config.",
   "license": "MIT",
   "author": "apitrail contributors",
   "repository": {
@@ -11,7 +11,19 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": ["apitrail", "postgres", "postgresql", "adapter", "storage", "supabase"],
+  "keywords": [
+    "apitrail",
+    "postgres",
+    "postgresql",
+    "adapter",
+    "storage",
+    "supabase",
+    "neon",
+    "rds",
+    "logging",
+    "observability",
+    "nextjs"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -29,7 +41,12 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "engines": {
     "node": ">=20"

@@ -1,7 +1,7 @@
 {
   "name": "apitrail",
   "version": "0.1.0-alpha.3",
-  "description": "The API logger for Next.js (and beyond) — your data, your database.",
+  "description": "Self-hosted request logging for Next.js. Capture every HTTP request with bodies, headers, and the full child-span waterfall — persisted to your own Postgres. The open-source alternative to Sentry & Datadog for API observability. Zero SaaS.",
   "license": "MIT",
   "author": "apitrail contributors",
   "repository": {
@@ -16,12 +16,21 @@
     "next",
     "logger",
     "api-logger",
+    "request-logger",
     "observability",
     "telemetry",
     "opentelemetry",
     "otel",
     "vercel",
-    "tracing"
+    "tracing",
+    "monitoring",
+    "apm",
+    "self-hosted",
+    "postgres",
+    "supabase",
+    "instrumentation",
+    "middleware",
+    "developer-tools"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
@@ -40,12 +49,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "sideEffects": false,
   "engines": {
     "node": ">=20"

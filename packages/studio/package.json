@@ -1,7 +1,7 @@
 {
   "name": "@apitrail/studio",
-  "version": "0.1.0-alpha.1",
-  "description": "Standalone dev dashboard for apitrail. Run with `pnpm dlx @apitrail/studio`.",
+  "version": "0.1.0-alpha.2",
+  "description": "Prisma-Studio-style standalone dashboard for apitrail. `pnpm dlx @apitrail/studio` → localhost:4545 → beautiful dark UI with KPIs, filters, and Chrome-DevTools-style waterfalls of every captured request. No embedding, no auth gymnastics.",
   "license": "MIT",
   "author": "apitrail contributors",
   "repository": {
@@ -16,7 +16,14 @@
     "studio",
     "dashboard",
     "dev-tool",
-    "monitoring"
+    "monitoring",
+    "observability",
+    "devtools",
+    "log-viewer",
+    "api-inspector",
+    "request-inspector",
+    "nextjs",
+    "postgres"
   ],
   "type": "module",
   "bin": {

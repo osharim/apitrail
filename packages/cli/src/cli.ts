@@ -1,5 +1,6 @@
 import { drop } from './commands/drop.js'
 import { init } from './commands/init.js'
+import { install } from './commands/install.js'
 import { status } from './commands/status.js'
 import { bold, cyan, dim, red } from './utils/colors.js'
 
@@ -7,20 +8,25 @@ import { bold, cyan, dim, red } from './utils/colors.js'
 declare const __APITRAIL_VERSION__: string
 
 const HELP = `
-${bold('apitrail')} ${dim(`v${__APITRAIL_VERSION__}`)} — the API logger for Next.js.
+${bold('apitrail')} ${dim(`v${__APITRAIL_VERSION__}`)} — drop-in request logging for Next.js.
 
 ${bold('Commands:')}
-  ${cyan('init')}      Create the apitrail table + indexes in your database
-  ${cyan('status')}    Show recent activity and row counts
-  ${cyan('drop')}      Drop the apitrail table (destructive, requires --yes)
+  ${cyan('install')}   ${dim('# recommended')}  One-command setup wizard (installs deps, writes instrumentation.ts, creates the table)
+  ${cyan('init')}                    Create just the database table + indexes
+  ${cyan('status')}                  Show recent activity and row counts
+  ${cyan('drop')}                    Drop the apitrail table (destructive, requires --yes)
+
+${bold('Quick start:')}
+  ${dim('#')} In an existing Next.js 15+ project:
+  pnpm dlx apitrail install
 
 ${bold('Examples:')}
-  apitrail init
-  apitrail init --url postgres://… --table my_logs
-  apitrail init --force           ${dim('# drop + recreate')}
-  apitrail init --print           ${dim('# print SQL only')}
-  apitrail status --limit 20
-  apitrail drop --yes
+  apitrail install                  ${dim('# interactive wizard')}
+  apitrail install --yes            ${dim('# accept defaults, use env DATABASE_URL')}
+  apitrail install --with-dashboard ${dim('# + scaffold /apitrail page')}
+  apitrail init                     ${dim('# schema only')}
+  apitrail status --limit 20        ${dim('# show recent requests')}
+  apitrail drop --yes               ${dim('# destructive')}
 
 ${bold('Environment:')}
   APITRAIL_DATABASE_URL   Connection string (preferred)
@@ -30,6 +36,7 @@ ${bold('Environment:')}
 `
 
 const COMMANDS: Record<string, (argv: string[]) => Promise<void>> = {
+  install,
   init,
   status,
   drop,
