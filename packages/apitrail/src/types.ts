@@ -81,16 +81,30 @@ export interface ResolvedConfig {
   maskKeys: readonly string[]
 
   /**
-   * Extra OpenTelemetry instrumentations to register alongside apitrail.
-   * Useful for capturing DB queries, outgoing fetches, Redis, etc. Each
-   * item is forwarded verbatim to `@vercel/otel`'s `instrumentations`
-   * option, which expects `@opentelemetry/instrumentation-*` instances.
+   * Auto-detect installed `@opentelemetry/instrumentation-*` packages and
+   * enable them. Install the package, get query timings — no config change
+   * required. Default: `true`.
+   *
+   * Set to `false` to disable detection and opt in only to what you pass
+   * via `otelInstrumentations`.
+   */
+  autoInstrument: boolean
+
+  /**
+   * Additional OpenTelemetry instrumentations, appended after any
+   * auto-detected ones. Use this when you want a non-default constructor
+   * option, or when you want an instrumentation not on the auto-detect
+   * list.
+   *
+   * Items are forwarded verbatim to `@vercel/otel`'s `instrumentations`
+   * option and must be `@opentelemetry/instrumentation-*` instances.
    *
    * @example
    * import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
    *
    * defineConfig({
-   *   otelInstrumentations: [new PgInstrumentation()],
+   *   autoInstrument: false,
+   *   otelInstrumentations: [new PgInstrumentation({ enhancedDatabaseReporting: true })],
    * })
    */
   otelInstrumentations: readonly unknown[]

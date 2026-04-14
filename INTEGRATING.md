@@ -262,13 +262,58 @@ defineConfig({
 
 ## Capture database queries (and other outgoing calls)
 
-Every span apitrail sees ends up in `apitrail_spans` as a child of the root request span. Database query timings aren't captured by default — but they are one `instrumentation` away.
+Every span apitrail sees ends up in `apitrail_spans` as a child of the root request span. Database query timings aren't captured by default — but they are **one package install away, with zero config change**.
 
-### Postgres (via `pg`, Drizzle, or any `pg`-based client)
+### The zero-config way (recommended)
+
+`apitrail` has **auto-instrument on by default**. Just install the OpenTelemetry package — `register()` detects it on startup and enables it for you.
 
 ```bash
+# Postgres / Drizzle / Kysely:
 pnpm add @opentelemetry/instrumentation-pg
 ```
+
+That's it. Restart your dev server and your waterfall now includes every query:
+
+```
+GET /api/quotes 200 68ms
+├─ INTERNAL  executing api route /api/quotes       45ms
+│  ├─ CLIENT pg.query SELECT FROM quotes …         18ms
+│  ├─ CLIENT pg.query SELECT FROM users …           5ms
+│  └─ CLIENT pg.query SELECT FROM products …      15ms
+└─ INTERNAL  start response                         <1ms
+```
+
+The `apitrail install` wizard goes even further — it scans your `package.json`, sees you have `pg` or `drizzle-orm` or `ioredis`, and offers to install the right instrumentation for you:
+
+```
+? Enable pg — capture every Postgres / Drizzle / Kysely query with timing? (Y/n)
+? Enable undici — capture outgoing fetch() calls? (Y/n)
+```
+
+### Auto-detected packages
+
+apitrail looks for these on startup and enables them if found:
+
+| OTEL package | Triggers on |
+|---|---|
+| `@opentelemetry/instrumentation-pg` | `pg`, `drizzle-orm`, `postgres`, `kysely` |
+| `@opentelemetry/instrumentation-undici` | `undici` or native fetch |
+| `@opentelemetry/instrumentation-fetch` | browser-style fetch |
+| `@opentelemetry/instrumentation-redis-4` | `redis` |
+| `@opentelemetry/instrumentation-ioredis` | `ioredis` |
+| `@opentelemetry/instrumentation-mongodb` | `mongodb`, `mongoose` |
+| `@opentelemetry/instrumentation-mysql2` | `mysql2` |
+| `@opentelemetry/instrumentation-mysql` | `mysql` |
+| `@opentelemetry/instrumentation-aws-sdk` | `aws-sdk`, `@aws-sdk/*` |
+| `@opentelemetry/instrumentation-graphql` | `graphql` |
+| `@opentelemetry/instrumentation-kafkajs` | `kafkajs` |
+
+Install any of these and they "just work" — no code change in `instrumentation.ts`.
+
+### Override / custom options
+
+If you need non-default constructor options, turn auto off and pass your own:
 
 ```ts
 // instrumentation.ts
@@ -282,7 +327,10 @@ export async function register() {
   await apitrailRegister(
     defineConfig({
       adapter: postgresAdapter({ connectionString: process.env.DATABASE_URL }),
-      otelInstrumentations: [new PgInstrumentation()],
+      autoInstrument: false,
+      otelInstrumentations: [
+        new PgInstrumentation({ enhancedDatabaseReporting: true }),
+      ],
     }),
   )
 }
@@ -299,25 +347,6 @@ GET /api/quotes 200 68ms
 └─ INTERNAL  start response                         <1ms
 ```
 
-### Outgoing fetches
-
-```bash
-pnpm add @opentelemetry/instrumentation-fetch
-```
-
-Add `new FetchInstrumentation()` to `otelInstrumentations`. You'll see every `fetch('https://api.stripe.com/...')` in the waterfall with its duration, URL, method, and status.
-
-### Other databases & clients
-
-| Client | Package |
-|---|---|
-| MySQL | `@opentelemetry/instrumentation-mysql2` |
-| MongoDB | `@opentelemetry/instrumentation-mongodb` |
-| Redis | `@opentelemetry/instrumentation-redis-4` |
-| ioredis | `@opentelemetry/instrumentation-ioredis` |
-| AWS SDK | `@opentelemetry/instrumentation-aws-sdk` |
-
-Same pattern — install, `new …Instrumentation()`, add to `otelInstrumentations`.
 
 ### Everything at once
 

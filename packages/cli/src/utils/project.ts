@@ -13,6 +13,75 @@ export interface ProjectDetection {
   hasAppRouter: boolean
   hasEnvLocal: boolean
   databaseUrl: string | undefined
+  /** Runtime + dev deps detected in the user's package.json. */
+  deps: readonly string[]
+}
+
+/**
+ * Map of user-package → recommended OTEL instrumentation. When `apitrail
+ * install` sees any of these in the user's package.json, it offers to
+ * install the matching instrumentation so DB queries and outgoing calls
+ * appear in the waterfall.
+ */
+export interface InstrumentationSuggestion {
+  trigger: readonly string[]
+  install: string
+  label: string
+}
+
+export const INSTRUMENTATION_CATALOG: readonly InstrumentationSuggestion[] = [
+  {
+    trigger: ['pg', 'drizzle-orm', 'postgres', 'pg-promise', 'kysely'],
+    install: '@opentelemetry/instrumentation-pg',
+    label: 'pg — capture every Postgres / Drizzle / Kysely query with timing',
+  },
+  {
+    trigger: ['undici'],
+    install: '@opentelemetry/instrumentation-undici',
+    label: 'undici — capture outgoing fetch() calls',
+  },
+  {
+    trigger: ['ioredis'],
+    install: '@opentelemetry/instrumentation-ioredis',
+    label: 'ioredis — capture Redis commands',
+  },
+  {
+    trigger: ['redis'],
+    install: '@opentelemetry/instrumentation-redis-4',
+    label: 'redis — capture Redis commands',
+  },
+  {
+    trigger: ['mongodb', 'mongoose'],
+    install: '@opentelemetry/instrumentation-mongodb',
+    label: 'mongodb — capture MongoDB operations',
+  },
+  {
+    trigger: ['mysql2'],
+    install: '@opentelemetry/instrumentation-mysql2',
+    label: 'mysql2 — capture MySQL queries',
+  },
+  {
+    trigger: ['mysql'],
+    install: '@opentelemetry/instrumentation-mysql',
+    label: 'mysql — capture MySQL queries',
+  },
+  {
+    trigger: ['aws-sdk', '@aws-sdk/client-s3', '@aws-sdk/client-dynamodb', '@aws-sdk/client-sqs'],
+    install: '@opentelemetry/instrumentation-aws-sdk',
+    label: 'aws-sdk — capture S3 / DynamoDB / SQS / any AWS call',
+  },
+  {
+    trigger: ['graphql'],
+    install: '@opentelemetry/instrumentation-graphql',
+    label: 'graphql — capture GraphQL resolver timings',
+  },
+]
+
+export function suggestInstrumentations(
+  deps: readonly string[],
+): readonly InstrumentationSuggestion[] {
+  const depsSet = new Set(deps)
+  return INSTRUMENTATION_CATALOG.filter((i) => i.trigger.some((t) => depsSet.has(t)))
 }
 
 export function detectProject(cwd: string = process.cwd()): ProjectDetection {
@@ -43,6 +112,7 @@ export function detectProject(cwd: string = process.cwd()): ProjectDetection {
     hasAppRouter: existsSync(join(cwd, 'app')) || existsSync(join(cwd, 'src/app')),
     hasEnvLocal: existsSync(join(cwd, '.env.local')) || existsSync(join(cwd, '.env')),
     databaseUrl: readDatabaseUrl(cwd),
+    deps: Object.keys(allDeps),
   }
 }
 

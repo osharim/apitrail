@@ -97,16 +97,34 @@ export async function install(argv: string[]): Promise<void> {
     )
   }
 
+  // ── 3b. Detect instrumentations for user's stack ──────────────────────
+  const suggestions = suggestInstrumentations(project.deps)
+  const chosenInstrumentations: string[] = []
+
+  if (suggestions.length > 0) {
+    log.step(`Detected ${suggestions.length} integration(s) in your project`)
+    for (const s of suggestions) {
+      const wantIt = values.yes ? true : await confirm(`Enable ${s.label}?`, true)
+      if (wantIt) chosenInstrumentations.push(s.install)
+    }
+  }
+
   // ── 4. Install packages ───────────────────────────────────────────────
   if (values.install && !values['no-install']) {
     log.step('Installing packages')
     const deps = ['apitrail@alpha', '@apitrail/postgres@alpha', 'pg']
     if (withDashboard) deps.push('@apitrail/dashboard@alpha', 'server-only')
+    for (const pkg of chosenInstrumentations) deps.push(pkg)
     const devDeps = ['@types/pg']
     try {
       runInstall(project.packageManager, deps, { cwd: project.root })
       runInstall(project.packageManager, devDeps, { dev: true, cwd: project.root })
       log.done(`installed ${deps.length} runtime + ${devDeps.length} dev packages`)
+      if (chosenInstrumentations.length > 0) {
+        log.done(
+          `auto-instrument will pick up: ${chosenInstrumentations.map((p) => p.replace(/^@opentelemetry\/instrumentation-/, '')).join(', ')}`,
+        )
+      }
     } catch (err) {
       log.fail(`install failed: ${(err as Error).message}`)
       process.exit(1)
