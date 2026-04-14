@@ -7,6 +7,8 @@ export {
   maskHeaders,
   maskJsonString,
   maskObject,
+  maskQueryString,
+  splitAndMaskPath,
   truncate,
 } from './mask.js'
 export type {

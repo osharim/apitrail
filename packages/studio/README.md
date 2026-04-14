@@ -62,7 +62,15 @@ Output:
 
 ## Security
 
-Studio has **no built-in auth**. Default binding is `127.0.0.1` so only your machine can reach it. If you bind to `0.0.0.0` or run it remotely, put it behind a reverse proxy with your own auth — it reads raw request bodies and headers from apitrail, which may include sensitive data even after the masking layer.
+- **Default binding: `127.0.0.1`.** Only processes on your machine reach studio.
+- **Refuses to start on non-loopback hosts without `--auth-basic`.** This is enforced at CLI parse time — you cannot accidentally expose logs.
+- **HTTP Basic Auth** (`--auth-basic user:pass` or `APITRAIL_STUDIO_AUTH=user:pass`) uses constant-time SHA-256 comparison.
+- **Strict security headers** on every response: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex, nofollow`.
+- **Rate limit** on `/api/*` routes: 300 req / min per client IP.
+- **Parametrized SQL**: every user input hits Postgres as a bound parameter; table names are regex-validated identifiers; trace IDs must match `/^[0-9a-f]{32}$/`.
+- **Sanitized error responses**: 500s return `{"error":"internal error"}` — the actual SQL / stack trace is logged server-side only.
+
+For LAN / remote deploys, see the full threat model in [SECURITY.md](../../SECURITY.md) and the [setup walkthrough](../../docs/STUDIO_SETUP.md).
 
 ## License
 

@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/studio",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Standalone dev dashboard for apitrail. Run with `pnpm dlx @apitrail/studio`.",
   "license": "MIT",
   "author": "apitrail contributors",
@@ -11,13 +11,24 @@
   },
   "homepage": "https://apitrail.io",
   "bugs": "https://github.com/osharim/apitrail/issues",
-  "keywords": ["apitrail", "studio", "dashboard", "dev-tool", "monitoring"],
+  "keywords": [
+    "apitrail",
+    "studio",
+    "dashboard",
+    "dev-tool",
+    "monitoring"
+  ],
   "type": "module",
   "bin": {
     "apitrail-studio": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -31,6 +42,7 @@
     "dev": "concurrently -k \"pnpm dev:ui\" \"pnpm dev:server\"",
     "dev:ui": "vite",
     "dev:server": "tsup --watch --onSuccess \"node dist/cli.js --db=$APITRAIL_DATABASE_URL --dev\"",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .turbo",
     "prepublishOnly": "pnpm clean && pnpm build"
@@ -55,6 +67,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
   }
 }
