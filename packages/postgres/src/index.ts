@@ -1,9 +1,7 @@
 import type { SpanEntry, StorageAdapter } from 'apitrail'
-import pg from 'pg'
+import type pg from 'pg'
 import { createSchemaSQL, quoteIdent } from './schema.js'
 import type { PostgresAdapterOptions } from './types.js'
-
-const { Pool } = pg
 
 const COLUMNS = [
   'span_id',
@@ -77,19 +75,19 @@ function buildInsertSQL(tableName: string, batchSize: number): string {
   return `INSERT INTO ${t} (${cols}) VALUES ${tuples.join(', ')} ON CONFLICT (span_id) DO NOTHING`
 }
 
+/**
+ * Create a Postgres `StorageAdapter` for apitrail.
+ *
+ * Safe to import statically from `instrumentation.ts` — this factory does NOT
+ * load `pg` at import time. The `pg` module is dynamically imported on the
+ * first adapter call, which means Edge runtime bundles never include it.
+ */
 export function postgresAdapter(options: PostgresAdapterOptions = {}): StorageAdapter {
   const tableName = options.tableName ?? 'apitrail_spans'
   // Validate upfront so misconfiguration fails fast.
   quoteIdent(tableName)
 
   const ownsPool = !options.pool
-  const pool: pg.Pool =
-    options.pool ??
-    new Pool({
-      connectionString: options.connectionString,
-      ...options.poolConfig,
-    })
-
   const closePoolOnShutdown = options.closePoolOnShutdown ?? ownsPool
   const onError =
     options.onError ??
@@ -97,13 +95,31 @@ export function postgresAdapter(options: PostgresAdapterOptions = {}): StorageAd
       console.error('[apitrail/postgres]', err)
     })
 
+  // Pool is lazy-created on first insertBatch (only called in Node runtime).
+  let pool: pg.Pool | undefined = options.pool
+  let poolPromise: Promise<pg.Pool> | null = null
+
+  async function getPool(): Promise<pg.Pool> {
+    if (pool) return pool
+    if (poolPromise) return poolPromise
+    poolPromise = (async () => {
+      const pgMod = (await import('pg')).default
+      pool = new pgMod.Pool({
+        connectionString: options.connectionString,
+        ...options.poolConfig,
+      })
+      return pool
+    })()
+    return poolPromise
+  }
+
   let migrated = !options.autoMigrate
   let migrationPromise: Promise<void> | null = null
 
-  async function ensureMigrated(): Promise<void> {
+  async function ensureMigrated(p: pg.Pool): Promise<void> {
     if (migrated) return
     if (!migrationPromise) {
-      migrationPromise = pool
+      migrationPromise = p
         .query(createSchemaSQL(tableName))
         .then(() => {
           migrated = true
@@ -122,20 +138,21 @@ export function postgresAdapter(options: PostgresAdapterOptions = {}): StorageAd
     async insertBatch(entries: SpanEntry[]): Promise<void> {
       if (entries.length === 0) return
       try {
-        await ensureMigrated()
+        const p = await getPool()
+        await ensureMigrated(p)
         const sql = buildInsertSQL(tableName, entries.length)
         const params: Value[] = []
         for (const e of entries) {
           params.push(...toRow(e))
         }
-        await pool.query(sql, params)
+        await p.query(sql, params)
       } catch (err) {
         onError(err)
       }
     },
 
     async shutdown(): Promise<void> {
-      if (closePoolOnShutdown) {
+      if (closePoolOnShutdown && pool) {
         try {
           await pool.end()
         } catch (err) {

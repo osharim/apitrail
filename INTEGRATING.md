@@ -75,20 +75,30 @@ The created table is `apitrail_spans` with 6 indexes. Schema is documented in `p
 
 Next.js 15 reads this file from the project root automatically. Do not import it from anywhere else; Next.js calls `register()` once at server start.
 
-### Minimal
+> ### ⚠️ Critical: edge-safe pattern
+>
+> `instrumentation.ts` is compiled for **both** the Node and Edge runtimes. The Edge bundle MUST NOT pull in `@apitrail/postgres` (which depends on `pg`, a Node-only module). Static imports at the top of the file WILL be bundled for Edge and crash production with `ReferenceError: __import_unsupported is not defined` on every request.
+>
+> **Always use dynamic imports inside the Node-only branch of `register()`**, per [Vercel's official instrumentation pattern](https://nextjs.org/docs/app/guides/open-telemetry).
+
+### Minimal (edge-safe — use this template)
 
 ```ts
 // instrumentation.ts
-import { defineConfig, register as apitrailRegister } from 'apitrail'
-import { postgresAdapter } from '@apitrail/postgres'
+export async function register() {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-const config = defineConfig({
-  adapter: postgresAdapter({
-    connectionString: process.env.DATABASE_URL,
-  }),
-})
+  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { postgresAdapter } = await import('@apitrail/postgres')
 
-export const register = () => apitrailRegister(config)
+  const config = defineConfig({
+    adapter: postgresAdapter({
+      connectionString: process.env.DATABASE_URL,
+    }),
+  })
+
+  await apitrailRegister(config)
+}
 ```
 
 ### Supabase (managed Postgres)
@@ -96,50 +106,71 @@ export const register = () => apitrailRegister(config)
 Supabase's pooler uses SSL with a self-signed cert. Pass `ssl.rejectUnauthorized: false`:
 
 ```ts
-const config = defineConfig({
-  adapter: postgresAdapter({
-    connectionString: process.env.DATABASE_URL,
-    poolConfig: {
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    },
-  }),
-})
+// instrumentation.ts
+export async function register() {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return
+  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { postgresAdapter } = await import('@apitrail/postgres')
+
+  await apitrailRegister(defineConfig({
+    adapter: postgresAdapter({
+      connectionString: process.env.DATABASE_URL,
+      poolConfig: {
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      },
+    }),
+  }))
+}
 ```
 
-### Production-sensible defaults
+### Production-sensible defaults (full example)
 
 ```ts
-const config = defineConfig({
-  serviceName: 'my-app',
-  adapter: postgresAdapter({
-    connectionString: process.env.DATABASE_URL,
-    poolConfig: { ssl: { rejectUnauthorized: false } },
-  }),
-  skipPaths: [
-    /^\/_next\//,             // Next.js internals (already a default)
-    /^\/favicon\./,           // favicon variants
-    '/robots.txt',
-    '/sitemap.xml',
-    '/manifest.webmanifest',
-    '/api/health',            // your health-check
-  ],
-  slowMs: 500,
-  sampling: {
-    success: 0.1,             // 10 % of 2xx/3xx
-    error: 1,                 // all 4xx/5xx
-    slow: 1,                  // all requests above slowMs
-  },
-  maskKeys: [
-    // Defaults already mask: password, token, authorization, cookie,
-    // secret, api_key, credit_card, cvv, ssn, etc. See below.
-    // Add any app-specific keys you want masked in JSON bodies + headers:
-    'passwordHash',
-    'clientSecret',
-    'stripe_secret',
-  ],
-})
+// instrumentation.ts
+export async function register() {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return
 
-export const register = () => apitrailRegister(config)
+  const {
+    DEFAULT_MASK_KEYS,
+    defineConfig,
+    register: apitrailRegister,
+  } = await import('apitrail')
+  const { postgresAdapter } = await import('@apitrail/postgres')
+
+  const config = defineConfig({
+    serviceName: 'my-app',
+
+    adapter: postgresAdapter({
+      connectionString: process.env.DATABASE_URL,
+      poolConfig: { ssl: { rejectUnauthorized: false } },
+    }),
+
+    skipPaths: [
+      /^\/_next\//,
+      /^\/favicon\./,
+      '/robots.txt',
+      '/sitemap.xml',
+      '/manifest.webmanifest',
+      '/api/health',
+    ],
+
+    slowMs: 500,
+    sampling: {
+      success: 0.1,  // 10 % of 2xx/3xx
+      error: 1,      // all 4xx/5xx
+      slow: 1,       // all requests above slowMs
+    },
+
+    maskKeys: [
+      ...DEFAULT_MASK_KEYS,
+      'passwordHash',
+      'clientSecret',
+      'stripe_secret',
+    ],
+  })
+
+  await apitrailRegister(config)
+}
 ```
 
 ## The FULL config reference (do not invent keys)
@@ -293,6 +324,27 @@ The dashboard's JSX needs React 19 and the automatic JSX runtime. Make sure your
 
 ### Edge runtime warning: "A Node.js API is used (process.X)"
 Expected and harmless as long as the message refers to a function inside a dynamically imported module (`./shutdown.js`, `./capture.js`). Apitrail guards these behind `process.env.NEXT_RUNTIME !== 'edge'` and only actually executes them in Node.
+
+### `ReferenceError: __import_unsupported is not defined` on every route in production
+Your `instrumentation.ts` has a **static import** of `apitrail` or `@apitrail/postgres` at the top of the file. That bundles Node-only modules (`pg`, `net`, `crypto`) into the Edge middleware bundle, which crashes on the first request.
+
+Fix: move the imports inside `register()`, gated behind a `NEXT_RUNTIME` check. See the "edge-safe pattern" at the top of this document.
+
+```ts
+// WRONG — do not do this:
+import { defineConfig, register as apitrailRegister } from 'apitrail'
+import { postgresAdapter } from '@apitrail/postgres'
+
+export const register = () => apitrailRegister(/* ... */)
+
+// CORRECT — edge-safe:
+export async function register() {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return
+  const { defineConfig, register: apitrailRegister } = await import('apitrail')
+  const { postgresAdapter } = await import('@apitrail/postgres')
+  // ... rest of config
+}
+```
 
 ### The config is accepted but nothing changes
 You're passing invented keys (see "Common wrong keys" above). TypeScript may or may not catch them depending on how you construct the object; runtime silently ignores extras. Compare your object against the `ApitrailConfig` type — that's the canonical shape.

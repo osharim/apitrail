@@ -1,6 +1,6 @@
 {
   "name": "apitrail",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "The API logger for Next.js (and beyond) — your data, your database.",
   "license": "MIT",
   "author": "apitrail contributors",

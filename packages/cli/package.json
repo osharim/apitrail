@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/cli",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "CLI for apitrail — init schema, inspect, drop.",
   "license": "MIT",
   "author": "apitrail contributors",
