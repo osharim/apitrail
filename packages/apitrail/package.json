@@ -1,6 +1,6 @@
 {
   "name": "@apitrail/core",
-  "version": "0.1.0-alpha.6",
+  "version": "0.1.0-alpha.9",
   "description": "Self-hosted request logging for Next.js. Capture every HTTP request with bodies, headers, and the full child-span waterfall — persisted to your own Postgres. The open-source alternative to Sentry & Datadog for API observability. Zero SaaS.",
   "license": "MIT",
   "author": "apitrail contributors",
