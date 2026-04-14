@@ -1,0 +1,60 @@
+{
+  "name": "@apitrail/studio",
+  "version": "0.1.0-alpha.0",
+  "description": "Standalone dev dashboard for apitrail. Run with `pnpm dlx @apitrail/studio`.",
+  "license": "MIT",
+  "author": "apitrail contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osharim/apitrail.git",
+    "directory": "packages/studio"
+  },
+  "homepage": "https://apitrail.io",
+  "bugs": "https://github.com/osharim/apitrail/issues",
+  "keywords": ["apitrail", "studio", "dashboard", "dev-tool", "monitoring"],
+  "type": "module",
+  "bin": {
+    "apitrail-studio": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "pnpm build:ui && pnpm build:server",
+    "build:ui": "vite build",
+    "build:server": "tsup",
+    "dev": "concurrently -k \"pnpm dev:ui\" \"pnpm dev:server\"",
+    "dev:ui": "vite",
+    "dev:server": "tsup --watch --onSuccess \"node dist/cli.js --db=$APITRAIL_DATABASE_URL --dev\"",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "pnpm clean && pnpm build"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14",
+    "open": "^10.1.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@tanstack/react-table": "^8.20.6",
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}

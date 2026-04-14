@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-bg: #0a0a0b;
+  --color-panel: #111113;
+  --color-panel-hover: #17171a;
+  --color-border: #26262a;
+  --color-border-strong: #3a3a40;
+  --color-accent: oklch(0.78 0.15 295);
+  --color-ok: oklch(0.75 0.15 150);
+  --color-warn: oklch(0.82 0.15 85);
+  --color-error: oklch(0.72 0.18 25);
+  --color-info: oklch(0.75 0.15 235);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: #ededed;
+  font-feature-settings: "cv11", "ss01", "ss03";
+}
+
+/* Tabular numbers for metrics */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar (dark, thin) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a2e;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a40;
+}
+
+/* Monospace code blocks */
+.code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  background: #070708;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Waterfall row */
+.waterfall-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) 1fr 70px;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 12px;
+  align-items: center;
+}

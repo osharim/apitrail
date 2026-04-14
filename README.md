@@ -52,7 +52,8 @@ Child spans (`INTERNAL`, `CLIENT`) are captured by default — you get the full 
 | [`apitrail`](./packages/apitrail) | Core — register, OTEL processor, capture, masking |
 | [`@apitrail/postgres`](./packages/postgres) | Postgres storage adapter |
 | [`@apitrail/cli`](./packages/cli) | `apitrail init` / `status` / `drop` |
-| `@apitrail/dashboard` | Embeddable Next.js UI (WIP) |
+| [`@apitrail/studio`](./packages/studio) | Standalone dev dashboard — `pnpm dlx @apitrail/studio` |
+| [`@apitrail/dashboard`](./packages/dashboard) | Embeddable Next.js Server Component (alternative to studio) |
 
 ## Configuration
 
@@ -95,7 +96,9 @@ defineConfig({
 - [x] Full span waterfall capture
 - [x] Postgres adapter (`@apitrail/postgres`)
 - [x] CLI (`@apitrail/cli`) — init / status / drop
-- [ ] Dashboard (`@apitrail/dashboard`)
+- [x] Embeddable dashboard (`@apitrail/dashboard`)
+- [x] Standalone studio (`@apitrail/studio`) — Prisma-Studio-style dev tool
+- [ ] Live tail (SSE), full-text search, error grouping in studio
 - [ ] MongoDB, MySQL, SQLite adapters
 - [ ] Docs site
 
