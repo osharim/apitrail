@@ -31,6 +31,19 @@ Drop-in observability for Next.js App Router — every request, every body, ever
 
 ---
 
+## ⚡ Integrate in 30 seconds
+
+```bash
+pnpm dlx @apitrail/cli install   # installs + wires everything for Next.js
+pnpm dlx @apitrail/studio        # opens the dashboard at http://localhost:4545
+```
+
+That's it — hit any route in your app and watch requests land live.
+
+<sub>npm / yarn / bun are detected automatically. Want to see every option or set it up by hand? → <a href="#-quick-start">Quick start</a>.</sub>
+
+---
+
 ## ✨ Why apitrail?
 
 ```bash
